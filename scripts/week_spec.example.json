@@ -1,0 +1,12 @@
+{
+  "name": "W1",
+  "comment": "Example week spec aligned with the W1 of examples/plan.example.html (fictional). Schema reference: docs/02. Only session kinds the coach/profile allow are scheduled.",
+  "days": [
+    {"date": "2027-08-03", "name": "W1 Tue E5", "kind": "easy",
+     "distance_km": 5, "pace_min_km": 6.9, "hr_min": 125, "hr_max": 150},
+    {"date": "2027-08-05", "name": "W1 Thu E5", "kind": "easy",
+     "distance_km": 5, "pace_min_km": 6.9, "hr_min": 125, "hr_max": 150},
+    {"date": "2027-08-08", "name": "W1 Sun LR9", "kind": "lsd",
+     "distance_km": 9, "pace_min_km": 6.8, "hr_min": 125, "hr_max": 150}
+  ]
+}

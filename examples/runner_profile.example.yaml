@@ -1,0 +1,56 @@
+# Fictional runner profile (Example Runner / 示例跑者)
+# All data is FABRICATED. Schema reference: docs/08_runner_profile_zh.md
+# Copy as your own workspace/runner_profile.yaml and replace every value.
+
+identity:
+  alias: 示例跑者
+  language: zh
+  timezone: Asia/Shanghai
+
+races:
+  - name: 示例体育公园 10K
+    date: 2027-09-19
+    distance: 10k
+    role: training          # tune-up run as a quality long session, not all-out
+  - name: 示例湖半程马拉松
+    date: 2027-10-17
+    distance: half
+    role: attempt           # serious but still part of the plan; may update PR
+  - name: 示例国际马拉松
+    date: 2027-11-21
+    distance: marathon
+    role: A                 # the only all-out race; whole cycle funnels here
+
+weekly:
+  runs_per_week: 4
+  days:
+    Tuesday: quality
+    Thursday: easy
+    Friday: easy
+    Sunday: long
+  long_run_day: Sunday
+  quality_days: [Tuesday]   # quality definition comes from the coach package
+  max_run_min: 180
+
+pr:                          # best recent results (>=1 needed; see docs/09)
+  5k: 23:45                  # 2026-11
+  10k: 49:30                 # 2027-03
+  half: 1:52:30              # 2027-04
+
+coach: daniels_vdot
+
+strength:
+  sessions_per_week: 2
+  days:
+    Wednesday: "lower body (squat/RDL/lunge/calf)"
+    Saturday: "upper / core / calf (no heavy lower before Sunday long run)"
+
+constraints:
+  - "早睡早起型；周末白天可安排长距离"
+  - "曾患足底筋膜炎（已愈），日常做提踵/足底放松；跟腱无既往问题"
+  - "工作日午休可跑周四/周五轻松跑；出差周提前一周告知以减量"
+
+metric_baselines:
+  resting_hr: 50
+  weight_kg: 62.0
+  sleep_h: 7.2

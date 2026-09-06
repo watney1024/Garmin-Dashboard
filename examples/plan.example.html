@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>示例跑者 · 2027 马拉松 AI 陪练计划（W1–W16）</title>
+<style>
+  :root{
+    --bg:#0f1419; --panel:#161c24; --panel2:#1c2530; --ink:#e7edf3;
+    --mut:#8fa0b0; --line:#2a3642;
+    --acc:#38bdf8; --green:#34d399; --amber:#fbbf24; --red:#f87171;
+    --tag:#22303c;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);
+    font:15px/1.65 "PingFang SC","Microsoft YaHei",system-ui,sans-serif}
+  .wrap{max-width:1080px;margin:0 auto;padding:24px 18px 80px}
+  h1{font-size:24px;margin:.2em 0}
+  h2{font-size:19px;margin:2.2em 0 .7em;padding-bottom:.35em;border-bottom:1px solid var(--line);
+     color:#fff}
+  h3{font-size:15.5px;margin:1.6em 0 .5em;color:var(--acc)}
+  p{margin:.5em 0}
+  .mut{color:var(--mut)}
+  .tag{display:inline-block;padding:0 8px;border-radius:20px;background:var(--tag);
+    font-size:12px;margin-right:6px}
+  table{border-collapse:collapse;width:100%;margin:.8em 0;font-size:13.5px}
+  th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}
+  th{background:var(--panel2);color:#fff;white-space:nowrap}
+  tr:nth-child(even) td{background:rgba(255,255,255,.02)}
+  code,pre{font-family:ui-monospace,Consolas,monospace}
+  pre{background:#0b0f14;border:1px solid var(--line);border-radius:8px;padding:12px;overflow:auto}
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;margin:14px 0}
+  .warn{background:rgba(248,113,113,.08);border-left:3px solid var(--red);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+  .note{background:rgba(56,189,248,.06);border-left:3px solid var(--acc);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+  .ok{background:rgba(52,211,153,.07);border-left:3px solid var(--green);padding:10px 14px;border-radius:0 8px 8px 0;margin:10px 0}
+  .kv{display:flex;flex-wrap:wrap;gap:6px 26px}
+  .kv b{color:#fff}
+  canvas{max-width:100%}
+  .chart{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:12px;margin:10px 0}
+  .lg{font-size:16px;color:#fff}
+  .e{color:var(--mut)}
+  .km{text-align:right}
+  .tot{font-weight:600;color:#fff}
+  .gate{border:1px solid var(--line);border-radius:10px;padding:10px 14px;margin:8px 0;background:var(--panel)}
+  .gate .d{color:var(--amber);font-weight:600}
+  ul,ol{margin:.4em 0 .8em;padding-left:1.5em}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header class="card">
+  <div class="kv">
+    <div><b>跑者</b> 示例跑者（虚构 · CC0）</div>
+    <div><b>目标赛</b> 2027-11-21 示例国际马拉松 · <span class="tag">A</span>目标 <b>4:00</b></div>
+    <div><b>教练包</b> daniels_vdot</div>
+    <div><b>VDOT</b> ≈40（近似，见附录说明）</div>
+    <div><b>周期</b> W1 08/02 – W16 11/21（16 周）</div>
+  </div>
+  <p class="e mut">本文件为 <b>AI 陪练示例成品</b>：所有数据（跑者、成绩、赛事）均为虚构，仅用于演示 docs/05 的输出形态。
+  真实计划由 agent 从跑者档案 + 教练包生成，跑者不手改本文件。</p>
+</header>
+
+<h2>一、目标与赛历</h2>
+<table>
+  <thead><tr><th>日期</th><th>赛事</th><th>距离</th><th>角色</th><th>怎么跑</th></tr></thead>
+  <tbody>
+    <tr><td>2027-09-19（周日 W7）</td><td>示例体育公园 10K</td><td>10 km</td><td><span class="tag">训练</span></td>
+      <td>不当比赛：热身 2k + 10k 节奏略高于马配（≈T 下端）+ 冷身 2k；当作该周长距离课</td></tr>
+    <tr><td>2027-10-17（周日 W11）</td><td>示例湖半程马拉松</td><td>半马</td><td><span class="tag">尝试</span></td>
+      <td>认真但留余地：前半 5:40–5:50，后程可提速；成绩超 PR(1:52:30) 则更新档案</td></tr>
+    <tr><td>2027-11-21（周日 W16）</td><td>示例国际马拉松</td><td>全马</td><td><span class="tag">A</span></td>
+      <td>唯一全力赛。起跑保守 5:40–5:45，30k 后状态好再贴近 5:35</td></tr>
+  </tbody>
+</table>
+<div class="warn"><b>只有一个 A 赛。</b>非 A 赛不允许毁掉 A 赛——两场都落在周日的长距离位置上，
+按上表"训练/尝试"跑法并入当周，不额外加量。</div>
+
+<h2>二、周骨架与周期</h2>
+<p>跑者档案：每周 4 跑（周二质量 / 周四 E / 周五恢复 / 周日长距离），力量周三（下肢）+ 周六（上肢核心小腿）。</p>
+<table>
+  <thead><tr><th>日</th><th>内容</th><th>说明</th></tr></thead>
+  <tbody>
+    <tr><td>周一</td><td>休息</td><td>周一复盘日：跑者说一句话即可</td></tr>
+    <tr><td>周二</td><td>质量课 E/Q</td><td>基础期 E；第 6 周起 T 或 I 交替</td></tr>
+    <tr><td>周三</td><td>力量 A（下肢）</td><td>深蹲/硬拉类主项；距周日长距离 ≥72h</td></tr>
+    <tr><td>周四</td><td>E 跑</td><td>心率 130–150，时间兜底</td></tr>
+    <tr><td>周五</td><td>恢复跑</td><td>很短，≤145 bpm</td></tr>
+    <tr><td>周六</td><td>力量 B（上肢/核心/小腿）</td><td>不做下肢大重量（周日有长距离）</td></tr>
+    <tr><td>周日</td><td>长距离 / 比赛</td><td>周期主课；后段含 M 段时按目标配速</td></tr>
+  </tbody>
+</table>
+<p><b>分期：</b>基础 W1–W4 → 恢复 W5 → 质量构建 W6–W10 → 尝试赛 W11 → 峰值 W12–W13
+→ 减量 W14–W16（赛）。跑量只在"相邻正常周"递增 ≤15%，恢复周 ≥ 上周 65%。</p>
+
+<h2>三、强度体系与配速</h2>
+<p class="mut">VDOT≈40（由 5K 23:45 / 10K 49:30 交叉验证，近似表 <code>data/vdot_table.csv</code>）。</p>
+<table>
+  <thead><tr><th>区</th><th>配速（/km）</th><th>心率用途</th><th>用在哪</th></tr></thead>
+  <tbody>
+    <tr><td><b>E</b> 轻松</td><td>6:44 – 7:42</td><td>130–150 权威</td><td>周二(基础期)/周四/周五/长距离主体</td></tr>
+    <tr><td><b>M</b> 马配</td><td>5:30（目标课 5:35–5:45）</td><td>警报</td><td>长距离后段（W8 起逐步加入）</td></tr>
+    <tr><td><b>T</b> 阈值</td><td>5:06</td><td>—</td><td>周二 T 课（4–7 km 连续）</td></tr>
+    <tr><td><b>I</b> 间歇</td><td>4:36</td><td>—</td><td>周二 I 课（800/1000 m 组）</td></tr>
+    <tr><td><b>ST</b> 加速跑</td><td>4:20–4:40 ×30s</td><td>—</td><td>轻松课后 4–6 组</td></tr>
+  </tbody>
+</table>
+<div class="note"><b>训练口径：</b>低强度（E/恢复）＝心率唯一权威，时间兜底，配速只当参考下限；
+高质量（M/T/I/比赛段）＝配速给区间、距离定负荷、心率当警报；长距离后段含 M 段时按马配验收。
+天热/没睡好/疲劳 → 全切"心率模式"。这些数字是近似 VDOT 配速（±10–20s/km）。</div>
+
+<h2>四、逐周课表</h2>
+<table>
+  <thead><tr><th>周</th><th>周二 质量/E</th><th>周四 E</th><th>周五 恢复</th><th>周日 长距离 / 比赛</th><th>周合计</th></tr></thead>
+  <tbody>
+    <tr><td class="wk">W1<br><span class="e">08/02–08/08</span></td><td>E5</td><td>E5</td><td>R4</td><td>LR 9（E）</td><td class="km tot">23</td></tr>
+    <tr><td class="wk">W2<br><span class="e">08/09–08/15</span></td><td>E5</td><td>E5</td><td>R4</td><td>LR 11（E）</td><td class="km tot">25</td></tr>
+    <tr><td class="wk">W3<br><span class="e">08/16–08/22</span></td><td>E6</td><td>E5</td><td>R5</td><td>LR 13（E）</td><td class="km tot">29</td></tr>
+    <tr><td class="wk">W4<br><span class="e">08/23–08/29</span></td><td>E6</td><td>E6</td><td>R5</td><td>LR 15（E）</td><td class="km tot">32</td></tr>
+    <tr><td class="wk">W5<br><span class="e">08/30–09/05</span></td><td>E5</td><td>E6</td><td>R5</td><td>LR 10（E）<span class="tag">恢复周</span></td><td class="km tot">26</td></tr>
+    <tr><td class="wk">W6<br><span class="e">09/06–09/12</span></td><td><b>T5</b>（4×1.5k，组休 1.5min）</td><td>E6</td><td>R5</td><td>LR 16（E）</td><td class="km tot">32</td></tr>
+    <tr><td class="wk">W7<br><span class="e">09/13–09/19</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R5</td><td>10K 训练赛（2E+10T+2cd）<span class="tag">训练</span></td><td class="km tot">31</td></tr>
+    <tr><td class="wk">W8<br><span class="e">09/20–09/26</span></td><td><b>T6</b>（2×3k，组休 2min）</td><td>E7</td><td>R5</td><td>LR 18（E+末段 M3）</td><td class="km tot">36</td></tr>
+    <tr><td class="wk">W9<br><span class="e">09/27–10/03</span></td><td><b>I6</b>（5×800@4:36，组休≈组时）</td><td>E7</td><td>R5</td><td>LR 20（E+末段 M4）</td><td class="km tot">38</td></tr>
+    <tr><td class="wk">W10<br><span class="e">10/04–10/10</span></td><td><b>T7</b>（2×3.5k，组休 2min）</td><td>E7</td><td>R5</td><td>LR 16（E）<span class="e">半马前控量</span></td><td class="km tot">35</td></tr>
+    <tr><td class="wk">W11<br><span class="e">10/11–10/17</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R5</td><td>半马 <b>attempt</b>（≈21，认真留余地）<span class="tag">尝试</span></td><td class="km tot">38</td></tr>
+    <tr><td class="wk">W12<br><span class="e">10/18–10/24</span></td><td><b>T7</b>（2×3.5k）</td><td>E7</td><td>R6</td><td>LR 20（E+末段 M5）</td><td class="km tot">40</td></tr>
+    <tr><td class="wk">W13<br><span class="e">10/25–10/31</span></td><td><b>I8</b>（6×1000@4:36，组休 3min）</td><td>E7</td><td>R6</td><td>LR 24（E+末段 M6）<span class="tag">峰值</span></td><td class="km tot">45</td></tr>
+    <tr><td class="wk">W14<br><span class="e">11/01–11/07</span></td><td><b>T6</b>（2×3k）</td><td>E6</td><td>R5</td><td>LR 16（E+末段 M3）<span class="tag">减量1</span></td><td class="km tot">33</td></tr>
+    <tr><td class="wk">W15<br><span class="e">11/08–11/14</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R4</td><td>LR 12（E）<span class="tag">减量2</span></td><td class="km tot">28</td></tr>
+    <tr><td class="wk">W16<br><span class="e">11/15–11/21</span></td><td>E5</td><td>E5</td><td>—</td><td>全程马拉松 <b>A</b>（4:00）</td><td class="km tot">52<span class="e">（含比赛）</span></td></tr>
+  </tbody>
+</table>
+<div class="note">T 课第二周换成巡航写法会重复：W10 固定为 <code>2×3.5k T</code>（组休 2min）。
+I/R 组数可随状态减 1–2 组，跑姿崩了立即停。</div>
+
+<h2>五、跑量曲线</h2>
+<div class="chart">
+  <canvas id="vol" height="150" aria-label="柱状图：计划周跑量"
+    data-values="23,25,29,32,26,32,31,36,38,35,38,40,45,33,28,52"></canvas>
+</div>
+<table>
+  <thead><tr><th>段</th><th>周</th><th>周量趋势</th><th>长距离趋势</th></tr></thead>
+  <tbody>
+    <tr><td>基础</td><td>W1–W4</td><td>23 → 32</td><td>9 → 15（E）</td></tr>
+    <tr><td>恢复</td><td>W5</td><td>26</td><td>10</td></tr>
+    <tr><td>质量构建</td><td>W6–W10</td><td>32 → 38（W7/W10 比赛或控量略降）</td><td>16 → 20，后段加入 M 段</td></tr>
+    <tr><td>尝试赛</td><td>W11</td><td>38（半马算长距离课）</td><td>≈21（attempt）</td></tr>
+    <tr><td>峰值</td><td>W12–W13</td><td>40 → 45</td><td>20 → 24（+M6）</td></tr>
+    <tr><td>减量</td><td>W14–W16</td><td>33 → 28 → 比赛</td><td>16 → 12 → 42（比赛）</td></tr>
+  </tbody>
+</table>
+
+<h2>六、恢复 / 节假日 / 比赛周预案</h2>
+<ul>
+  <li><b>恢复周（W5 及需要时）</b>：跑量 ≥ 上周 65%，保留频率，长距离缩短；力量照常但减组数。</li>
+  <li><b>节假日/出差</b>：可少跑可并课，但<b>长距离不让</b>（改到邻近可跑日）；整周丢失就重跑该周，回来不追赶。</li>
+  <li><b>比赛周（W7 训练赛 / W11 尝试赛 / W16 A 赛）</b>：赛前 2 天只做短 E；W16 周二/周四只做 5k 轻松跑，周五全休。</li>
+  <li><b>赛后</b>：A 赛后降量到平时一半跑一周；半马 attempt 后按长距离课对待，正常进入下一周。</li>
+</ul>
+
+<h2>七、风险红线与决策闸门</h2>
+<h3>通用安全层（不可移除）</h3>
+<table>
+  <thead><tr><th>等级</th><th>触发（任一）</th><th>自动动作</th></tr></thead>
+  <tbody>
+    <tr><td><span class="tag" style="background:#fbbf2444">黄灯</span></td>
+      <td>静息心率连续 2 天比基线 +8bpm；任一部位伤病 3–4；周跑量完成 &lt;80%；连续两周 RPE≥8</td>
+      <td>砍周六力量或周五恢复；长距离降 20%；当周不安排 T/I 提速段</td></tr>
+    <tr><td><span class="tag" style="background:#f8717144">红灯</span></td>
+      <td>任一部位伤病 ≥5；<b>单侧痛</b>（最关键）；连续两周完成 &lt;70%</td>
+      <td>停跑 3 天；目标降档到 4:10–4:20；恢复后从当前周重新起跑，不补量</td></tr>
+  </tbody>
+</table>
+<div class="warn"><b>单侧的痛不要自己判断。</b>双侧酸=疲劳可跑；单侧痛=结构性问题（胫骨/跟腱/髂胫束都先单侧发作），直接按红灯。</div>
+
+<h3>教练包红线（daniels_vdot，只加严）</h3>
+<ul>
+  <li>配速永远来自<b>当前 VDOT≈40</b>，不许用目标配速跑现在。</li>
+  <li>E 课上限就是上限：不追"更快的轻松跑"。</li>
+  <li>I 课"够快但不多"：组数宁少勿滥，跑姿崩立即停。</li>
+  <li>单次长距离 ≤ 当周总量 55%；正常周增幅 ≤25%（本计划按 ≤15% 控制）。</li>
+</ul>
+
+<h3>三个决策闸门（随周复盘更新）</h3>
+<div class="gate"><div class="d">闸门 1 · W9 末（10/03 当周）</div>
+  <div><b>结构接得住吗</b>：W8–W9 双质量周 + 长距离含 M 段后，周四/周五轻松跑心率无异常升高、
+  无新单侧疼痛 → 继续爬量；否则峰值 LR 降到 20，目标改 4:10。</div></div>
+<div class="gate"><div class="d">闸门 2 · W11（10/17 半马 attempt）</div>
+  <div><b>目标定多少</b>：半马 ≤1:55 → 目标 4:00 成立、按 5:40–5:45 起跑；1:55–2:00 → 目标 4:05–4:10；
+  &gt;2:00 或中途崩 → 目标 4:15，比赛日 5:55 起跑。10K（W7）只校 VDOT 与配速，不定目标。</div></div>
+<div class="gate"><div class="d">闸门 3 · W13（10/31 LR24+M6）</div>
+  <div><b>最后确认（一票否决）</b>：24k 全程 ≤5:42/km 且末段 M6 稳定在 5:35–5:45 → 4:00 成立；
+  <b>做不到 → 无论 W11 半马多快，比赛日一律按 5:50 起跑。</b></div></div>
+
+<h2>八、执行追踪与每周复盘（本文件为"宪法"章节）</h2>
+<div class="ok"><b>协作协议：</b>跑者每周一说一句话（日期+星期+课名+完成+哪先累+偏差原因，见 docs/03/07）；
+agent 周一自动拉 Garmin → 填训练日志 6 项 → 四段式复盘 → 判灯 → 有需要就改本文件课表与 trk 实际值 →
+<b>版本记录追加 vN</b>。<b>当本文档与 docs 冲突时，以本文档为准；修改一律由 agent 完成并记录。</b></div>
+
+<h3>计划 vs 实际</h3>
+<div class="chart">
+  <canvas id="trk" height="150" aria-label="柱状图：计划 vs 实际周跑量"
+    data-plan="23,25,29,32,26,32,31,36,38,35,38,40,45,33,28,52"
+    data-actual=",,,,,,,,,,,,,,,"></canvas>
+</div>
+<table>
+  <thead><tr><th>周</th><th>长距离计划</th><th>周量计划</th><th>实际</th><th>完成度</th><th>备注</th></tr></thead>
+  <tbody>
+    <tr><td class="wk">W1<br><span class="e">08/02</span></td><td>9</td><td class="km tot">23</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W2<br><span class="e">08/09</span></td><td>11</td><td class="km tot">25</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W3<br><span class="e">08/16</span></td><td>13</td><td class="km tot">29</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W4<br><span class="e">08/23</span></td><td>15</td><td class="km tot">32</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W5<br><span class="e">08/30</span></td><td>10</td><td class="km tot">26</td><td class="km">—</td><td>—</td><td class="e">恢复周</td></tr>
+    <tr><td class="wk">W6<br><span class="e">09/06</span></td><td>16</td><td class="km tot">32</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W7<br><span class="e">09/13</span></td><td>10K 训练赛</td><td class="km tot">31</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W8<br><span class="e">09/20</span></td><td>18</td><td class="km tot">36</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W9<br><span class="e">09/27</span></td><td>20</td><td class="km tot">38</td><td class="km">—</td><td>—</td><td class="e">闸门 1</td></tr>
+    <tr><td class="wk">W10<br><span class="e">10/04</span></td><td>16</td><td class="km tot">35</td><td class="km">—</td><td>—</td><td class="e">半马前控量</td></tr>
+    <tr><td class="wk">W11<br><span class="e">10/11</span></td><td>半马 ≈21</td><td class="km tot">38</td><td class="km">—</td><td>—</td><td class="e">闸门 2</td></tr>
+    <tr><td class="wk">W12<br><span class="e">10/18</span></td><td>20</td><td class="km tot">40</td><td class="km">—</td><td>—</td><td class="e">—</td></tr>
+    <tr><td class="wk">W13<br><span class="e">10/25</span></td><td>24</td><td class="km tot">45</td><td class="km">—</td><td>—</td><td class="e">峰值 · 闸门 3</td></tr>
+    <tr><td class="wk">W14<br><span class="e">11/01</span></td><td>16</td><td class="km tot">33</td><td class="km">—</td><td>—</td><td class="e">减量 1</td></tr>
+    <tr><td class="wk">W15<br><span class="e">11/08</span></td><td>12</td><td class="km tot">28</td><td class="km">—</td><td>—</td><td class="e">减量 2</td></tr>
+    <tr><td class="wk">W16<br><span class="e">11/15</span></td><td>全程 42</td><td class="km tot">52</td><td class="km">—</td><td>—</td><td class="e">A 赛</td></tr>
+  </tbody>
+</table>
+
+<h3>版本记录</h3>
+<table>
+  <thead><tr><th>版本</th><th>日期</th><th>改动</th><th>触发原因</th></tr></thead>
+  <tbody>
+    <tr><td>v1</td><td>2027-07-28</td><td>生成初版：16 周丹尼尔斯 VDOT 计划，A 赛 4:00</td><td>跑者确认档案与教练包</td></tr>
+  </tbody>
+</table>
+
+<script>
+(function(){
+  function bars(id){
+    var c=document.getElementById(id); if(!c) return;
+    var ctx=c.getContext('2d'); var w=c.width=Math.min(c.clientWidth,900), h=c.height=200;
+    ctx.clearRect(0,0,w,h);
+    var plan=(c.dataset.plan||'').split(',').map(function(x){return +x||0});
+    var actl=(c.dataset.actual||'').split(',').map(function(x){return x===''?null:+x});
+    var values=id==='vol'?(c.dataset.values||'').split(',').map(function(x){return +x||0}):plan;
+    var max=0;
+    values.concat(actl).forEach(function(v){ if(v!==null && v>max) max=v; });
+    var n=values.length, bw=Math.min(34,w/n*0.6), step=w/n;
+    var base=h-22, pad=34, top=10, scale=(base-top)/max;
+    for(var i=0;i<n;i++){
+      var x=pad+step*i+(step-bw)/2;
+      if(id==='vol'){
+        ctx.fillStyle='#38bdf8';
+        var bh=Math.max(2,values[i]*scale);
+        ctx.fillRect(x,base-bh,bw,bh);
+        ctx.fillStyle='#8fa0b0'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('W'+(i+1),x+bw/2,h-8);
+        ctx.fillText(values[i],x+bw/2,base-bh-3);
+      } else {
+        ctx.fillStyle='rgba(56,189,248,.85)';
+        var ph=Math.max(2,plan[i]*scale);
+        ctx.fillRect(x,base-ph,bw/2-1,ph);
+        ctx.fillStyle='rgba(248,113,113,.85)';
+        if(actl[i]!==null){ var ah=Math.max(2,actl[i]*scale);
+          ctx.fillRect(x+bw/2+1,base-ah,bw/2-1,ah);}
+        ctx.fillStyle='#8fa0b0'; ctx.font='10px sans-serif'; ctx.textAlign='center';
+        ctx.fillText('W'+(i+1),x+bw/2,h-8);
+      }
+    }
+  }
+  bars('vol'); bars('trk');
+  window.addEventListener('resize',function(){bars('vol');bars('trk');});
+})();
+</script>
+</div>
+</body>
+</html>

@@ -1,0 +1,111 @@
+# 02 · 数据格式与 schema（写给 AI agent）
+
+本文件定义仓库/工作区里的数据文件格式。**格式一旦确定就是约定，改格式必须连代码和文档一起改。** agent 处理数据时严格按本文件执行。
+
+## 1. 主表 `Activities.csv`（规范 16 列）
+
+全量活动主表，由 `scripts/garmin_pull.py` 每周从 Garmin 重建。作用：完整性核对 + 标题存储 + 快速趋势（周跑量/次数/时长/心率）。
+
+表头**逐字**如下（中文列名，编码 `utf-8-sig` 带 BOM）：
+
+```csv
+活动类型,类型Key,日期,标题,距离km,时长,移动时长,平均配速min/km,热量,平均心率,最大心率,步数,累计爬升m,累计下降m,事件类型,活动ID
+```
+
+| 列 | 含义 | 规则 |
+|---|---|---|
+| 活动类型 | 中文类型名 | 由类型Key映射，见下 |
+| 类型Key | Garmin 类型 key | 稳定枚举 |
+| 日期 | ISO `YYYY-MM-DD HH:MM:SS` | 按此**倒序**排序 |
+| 标题 | Garmin 端标题 | 默认常为"XX区 跑步"零信息；agent 知道课名时用 `set_activity_name` 批量改 Garmin 端 |
+| 距离km | 公里数 | **四舍五入 2 位小数**；非跑量类型（力量/抱石/攀岩/游泳等）留空 |
+| 时长 | 总时长 `HH:MM:SS` | 整段（含休息） |
+| 移动时长 | 移动时长 `HH:MM:SS` | 纯移动 |
+| 平均配速min/km | `MM:SS` | **用移动时长计算**；非跑步类型或速度不在合理范围（>20:00/km）留空 |
+| 热量 | kcal | |
+| 平均心率 | bpm | 非跑步类型可能为空 |
+| 最大心率 | bpm | |
+| 步数 | | |
+| 累计爬升m / 累计下降m | 米 | |
+| 事件类型 | Garmin 事件类型 | 保留原值 |
+| 活动ID | Garmin 活动 ID | **主键**，与 inbox 文件名关联 |
+
+### 类型Key → 中文映射（保持不变）
+
+```python
+TYPE_CN = {
+ "running":"跑步","track_running":"操场跑步","trail_running":"越野跑",
+ "treadmill_running":"跑步机跑步","strength_training":"力量训练",
+ "bouldering":"抱石","indoor_climbing":"室内攀岩","badminton":"羽毛球",
+ "cycling":"骑行","indoor_cardio":"室内有氧","breathwork":"呼吸训练",
+ "pilates":"普拉提","lap_swimming":"游泳","hiking":"徒步",
+ "ultimate_disc":"极限飞盘","other":"其他"}
+```
+
+未知类型保留原 key 作为"活动类型"显示。判定"跑步课"（用于算配速）的范围：
+`running / track_running / trail_running / treadmill_running`。
+
+### 生成/校验规则
+
+- 一行一条活动，日期倒序（最新在上）。
+- 只有值含逗号或引号才加双引号包裹；空值输出空。
+- 历史脏数据守卫：个别历史行距离是**米**而非公里（数值 >100 视为米 → `/1000`）。
+- **inbox 是"单次明细"、主表是"应有清单"**——单次 CSV 里没有日期/标题，关联靠活动 ID。
+
+## 2. 单次明细 `data/inbox/activity_<id>.csv`
+
+每次活动的佳明原生中文单次 CSV，自动下载，文件名 `activity_<id>.csv`（`<id>` = 主表活动ID）。内容因类型而异：
+
+| 类型 | 明细内容 | 主要用途 |
+|---|---|---|
+| 跑步/操场跑 | 分圈明细（时间/距离/配速/心率/步频/步长/升降） | 还原分段执行：`300/100×18` 跑了几个、快段配速、休息段污染判断 |
+| 力量训练 | 动作/组/次数/重量/组间休息 | 核对组数与负荷 |
+| 抱石 | 线路明细 | 还原线路数/难度尝试 |
+
+约定：
+- 该目录是**自动生成区**，人不要手动改名/丢文件；唯一例外是补旧数据时丢入并说明，agent 合并。
+- 只读、按 ID 匹配，**不要用文件时间戳或三元组匹配**（v13 协议以来改为按 ID）。
+
+## 3. 周排课 spec JSON（`scripts/week_spec.example.json`）
+
+由 agent 按教练包 + 跑者档案生成某一周的跑步课，供 `scripts/garmin_schedule.py` 使用：
+
+```json
+{ "name": "W1",
+  "days": [
+    {"date": "YYYY-MM-DD", "name": "W1 Tue E5", "kind": "easy",
+     "distance_km": 5, "pace_min_km": 6.9, "hr_min": 125, "hr_max": 150}
+  ]}
+```
+
+字段：
+- `kind`: `easy | recovery | lsd`（由跑者档案/计划允许的课型限定；教练课、力量等不排在此文件）
+- `distance_km` 与 `pace_min_km`：仅为**命名与时长兜底**（E/恢复课执行口径＝时间＋心率）
+- `minutes` 可选；缺省 `round(distance_km × pace_min_km)`（无距离时默认 30）
+- `hr_min/hr_max`：心率区间（默认 120/150）
+
+## 4. 已建训练 registry `garmin_workout_registry.json`
+
+`scripts/garmin_schedule.py` 的幂等缓存：课名 → Garmin workout id。
+
+```json
+{ "W1 Tue E5": 12345678 }
+```
+
+- 运行时产物，**只存在于跑者私有工作区**（gitignored），仓库只放虚构示例。
+- 重跑同一周 spec 不会重复建课，只会补排期。
+
+## 5. 私有 vs 仓库
+
+仓库只提交：schema、`week_spec.example.json`、虚构示例。任何**真实**的 `Activities.csv`、`inbox/*.csv`、registry、runner profile 都在跑者私有工作区（建议放 `workspace/`，已 gitignore），绝不进 git。
+
+## 6. 数据坑清单（分析时必须遵守）
+
+1. **米 vs 公里**：历史行可能有距离以米为单位（>100 判为米）→ `/1000`。
+2. **判强度用"移动配速"，不用整场平均**：间歇课的休息 lap（可慢到 45:10/km）会严重拉低均值。
+3. **区间课 vs 连续跑不可直接比**：整场平均值只在同类型课之间比较。
+4. **对比要同条件**：同距离 + 同温度 + 相近心率、且为连续跑，才有意义。
+5. **步频看单圈**，不看整场"平均步频"（休息段被一起平均）；FIT 文件里 cadence 是单腿数值 → ×2。
+6. **力量 CSV 有幽灵行/组**：用"次数×重量 + 组间休息列"交叉校验，别直接数行。
+7. **抱石/攀岩**：`时长`＝整场；`移动时长`＝0（明细不含观察/休息）。
+8. 主表是"应有清单"：分析周完成度时以主表为真值来源，逐次明细只用于还原执行细节。

@@ -1,0 +1,33 @@
+# ===== secrets / credentials =====
+.env
+.env.*
+!.env.example
+*.token*
+*garmin_tokens*
+**/mcp.json
+mcp-approvals.json
+
+# ===== python =====
+__pycache__/
+*.pyc
+*.pyo
+
+# ===== logs / temp =====
+*.log
+tmp/
+
+# ===== private runtime workspace =====
+# If you use this repo as your own training workspace, keep your private files under
+# workspace/ (runner profile, real Activities/inbox, plan HTML, training logs).
+# They will never be committed.
+workspace/
+runtime/
+
+# ===== real Garmin data (never commit) =====
+data/inbox/*.csv
+data/Activities.csv
+data/garmin_workout_registry.json
+
+# ===== local runner profile (never commit the real one) =====
+*.yaml
+!examples/*.yaml
