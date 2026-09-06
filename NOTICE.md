@@ -22,10 +22,19 @@ source books. Where applicable the source of inspiration is credited in each pac
 - Matt Fitzgerald, *80/20 Running*（80/20 跑步法）
 - Luke Humphrey / Hanson's Marathon Method（汉森马拉松训练法）
 - Pete Pfitzinger & Scott Douglas, *Advanced Marathoning*（中文版《你可以跑得更快》）
-- Jack Daniels' **VDOT** concept and pace tables — the table shipped at
-  `data/vdot_table.csv` is an **approximation** derived from publicly described relations,
-  *not* the copyrighted original tables (see `docs/09_vdot_paces_zh.md`, marked TODO to be
-  replaced by an authoritative source supplied by a contributor).
+- Arthur Lydiard, *Running to the Top*（莱迪亚德训练体系）
+
+## VDOT tables data / VDOT 表数据（GPL-3.0）
+
+`data/vdot/vdot_paces.csv` and `data/vdot/vdot_races.csv` are converted from the VDOT
+tables of
+
+> **VDOT Calculator** by Zac Blanco — <https://github.com/ZacBlanco/vdot> ·
+> <https://vdot.blanco.io> — **GPL-3.0**
+
+We only re-shaped the export (wide → tidy, distances to metres, times to seconds); the
+numeric values are unchanged. Redistribution of these files follows the GPL-3.0 terms
+(full text: `data/vdot/GPL-3.0.txt`; notes: `data/vdot/README.md`).
 
 ## Examples / 示例
 

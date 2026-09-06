@@ -1,86 +1,81 @@
 # 09 · VDOT: race results → training paces (for AI agents)
 
-## 1. Concept
+## 1. Concept & data
 
-**VDOT** (from Jack Daniels' system) is a "running ability index": it is derived from one
-all-out race performance and its unit ≈ VO₂max. It collapses a runner's ability into a
-single number, then that number maps to **target paces for each training intensity**.
-Source: Jack Daniels, *Daniels' Running Formula* — this repo only summarises it and ships
-tools; it does not copy the original tables (see "approximation statement" below).
+**VDOT** (Jack Daniels' system) turns one all-out performance into a "running ability
+score", then maps it to **training paces/times** per intensity. Source concept: Jack
+Daniels, *Daniels' Running Formula*.
 
-Uses:
-- Take ≥1 PR (5K/10K/half/marathon) → VDOT → **E/M/T/I/R paces**.
-- On easy/recovery days the execution doctrine stays **HR/perceived-effort first**
-  (safety layer & doctrine in docs/03/06); VDOT's E pace is a reference floor. **Quality
-  sessions (T/I/R and M segments) are prescribed by VDOT paces.**
-- Test-race results → conversion → target updates (gates in docs/06).
+This repo uses **two canonical tables** under `data/vdot/` (both tidy long format):
 
-## 2. Intensity zones (approximate; what each is for)
+| file | row format | purpose |
+|---|---|---|
+| `data/vdot/vdot_races.csv` | `vdot, distance_m, seconds` | **result → VDOT**: find the equivalent race time |
+| `data/vdot/vdot_paces.csv` | `vdot, intensity, distance_m, seconds` | **VDOT → training time/pace** (E/M/T/I/R × distances) |
 
-| Zone | full name | purpose | VO2 fraction (this tool, approx) |
+- VDOT 30–85 in integer rows; non-integer VDOT is **linearly interpolated** by
+  `scripts/vdot.py`.
+- Half/marathon distances are stored in metres (`21097.5` / `42195`).
+- ⚠ **License**: the table values derive from a **GPL-3.0** export — Zac Blanco's
+  *VDOT Calculator* (see `data/vdot/README.md`, `NOTICE.md`, full text
+  `data/vdot/GPL-3.0.txt`). Redistribution follows GPLv3; this is not a verbatim copy of
+  the printed book tables.
+
+## 2. Intensity zones
+
+| zone | full name | purpose | VDOT 40 example (/km or ×distance) |
 |---|---|---|---|
-| E | Easy | aerobic base, largest share | ≈52–62% |
-| M | Marathon | marathon-pace segments | ≈80% |
-| T | Threshold | lactate threshold (continuous 20–40 min or cruise reps) | ≈88% |
-| I | Interval | VO2max intervals (3–5 min reps) | ≈100% |
-| R | Repetition | short speed/form work (200–400 m, full recovery) | ≈104% |
+| E | Easy | aerobic base, largest share | `6:19`/km (fast-end reference; slower is fine) |
+| M | Marathon | marathon-pace segments | `5:29`/km |
+| T | Threshold | lactate threshold (cruise reps/continuous) | `5:06`/km (T/1000 = 1 km) |
+| I | Interval | VO2max intervals (3–5 min reps) | `4:42`/km (I/1000 = 1 km) |
+| R | Repetition | short speed/form (200–400 m, full recovery) | 400 m ≈ `1:46` |
 
-Example (VDOT 40 row from `data/vdot_table.csv`):
+> "R/km" shown by the tool is a per-km projection; when prescribing R, use the
+> **time for the actual distance** (e.g. R/400 = 106 s).
 
-```
-E  6:44 – 7:42 /km     M  5:30 /km     T  5:06 /km
-I  4:36 /km            R 400m ≈ 107 s
-```
+## 3. Execution doctrine (important)
 
-## 3. Tooling & data
+- **Low intensity (E/recovery)**: HR/feel is the only authority, time is the fallback. The
+  `E/km` table value is only the **fast-end reference floor** — running easy slower is
+  always allowed. In hot weather / poor form, switch fully to "HR mode".
+- **Quality (M/T/I/R/race segments)**: prescribe from the table values (band); distance
+  sets the load, HR is an alarm.
+- Always prescribe from the **current** VDOT, never an aspirational target.
 
-- `scripts/vdot.py`: `--5k 23:45` / `--race-time 1:52:30 --distance half` / `--vdot 40`;
-  `--json` output; `--gen-csv` regenerates the table.
-- `data/vdot_table.csv`: rows = VDOT 30–85 (step 1), columns =
-  `e_slow_minkm, e_fast_minkm, m_minkm, t_minkm, i_minkm, r_400m_sec`.
+## 4. How to use it (`scripts/vdot.py`)
 
-### Conversion method (transparent & reproducible)
-
-The tool uses the widely shared running-oxygen and race-duration-fraction relationships
-used by many community calculators, plus this repo's calibrated intensity fractions:
-
-```
-running VO2 cost: VO2 = -4.60 + 0.182258·v + 0.000104·v²     (v in m/min)
-race sustainable fraction: %VO2max = 0.8 + 0.1894393·e^(-0.012778·t)
-                                  + 0.2989558·e^(-0.1932605·t)   (t in minutes)
-race VDOT = VO2 ÷ %VO2max
-intensity pace = solve VO2(v) = fraction × VDOT for speed v
+```bash
+# result → VDOT (standard distances: from the vdot_races table)
+python scripts/vdot.py --5k 23:45
+python scripts/vdot.py --race-time 1:52:30 --distance half
+# VDOT → training paces/times + race equivalents (vdot_paces / vdot_races)
+python scripts/vdot.py --vdot 40
+python scripts/vdot.py --vdot 40 --json
 ```
 
-## 4. ⚠ Approximation statement (must be conveyed to users)
+- Standard distance names: `1500 1mile 3000 2mile 5k 8k 5mile 10k 15k 10mile 20k half 25k
+  30k marathon`.
+- Non-standard distances (e.g. 6k) fall back to the classic running-economy equations only
+  to estimate VDOT; training paces still come from the tables (interpolated).
+- Example (VDOT≈40): E 6:19 / M 5:29 / T 5:06 / I 4:42 / R400≈106 s; equivalents 5K 24:08 /
+  10K 50:03 / half 1:50:59 / marathon 3:49:45.
 
-- `data/vdot_table.csv` and `vdot.py` are an **approximation**: the intensity fractions
-  are our calibration against public descriptions, not book-perfect values; individual
-  rows may differ from the official printed tables by up to ~10–20 s/km.
-- The official Jack Daniels tables are copyrighted; this repo **does not copy them**. The
-  CSV header carries `TODO: replace with an authoritative table when available` — with
-  licensed authoritative data, either regenerate via
-  `python scripts/vdot.py --gen-csv data/vdot_table.csv` or replace the CSV directly
-  (when `vdot.py` reads the table, the table wins).
-- When reporting paces, agents state: "approximate VDOT paces, roughly ±10–20 s/km".
+## 5. Deriving VDOT from the profile's PRs (see also docs/08)
 
-## 5. How to use it
+1. Take the most recent (<6 months), most trustworthy result from `pr` and run it through
+   `vdot.py`.
+2. Cross-check the other PRs: they should agree within ~1. If they differ by more, use the
+   most recent all-out effort and explain the gap to the runner.
+3. Optional TODO: when several distances exist, weight by the goal distance (marathon goal
+   → marathon PR weighted higher). Currently the single most trustworthy/recent is used.
+4. After an A/attempt race, write the new time into `pr`, recompute VDOT; a change of ≥1
+   warrants proposing a pace update through the weekly review.
 
-### Deriving VDOT from the profile
-1. Read `pr` from `runner_profile.yaml`.
-2. Run each result through `vdot.py`; **use the most trustworthy/recent as the VDOT**, the
-   others as cross-checks (should agree within ~1).
-3. If results differ by >1: prefer the most recent all-out effort; explain the gap to the
-   runner (cycle phase / form differences).
+## 6. Notes
 
-### Consistency rules
-- PRs carry dates; **results older than 6 months are not the sole basis**.
-- After an A/attempt race: record the new time → recompute VDOT; a change of ≥1 warrants
-  proposing a pace update through the weekly review.
-- Always prescribe from the **current** VDOT, never an aspirational target VDOT.
-
-### When generating a plan
-- Write the resolved E/M/T/I/R paces into the plan's "intensity system & paces" chapter
-  (slot defined in docs/05).
-- In hot weather / poor form, switch everything to "HR + feel" (E pace is only a
-  reference), consistent with docs/03.
+- Values come from a third-party GPL-3.0 export; individual rows may differ from the
+  printed book by ~1–2 s. If you obtain a directly licensable/public-domain authoritative
+  version, replace the files under `data/vdot/` (keep the tidy schema).
+- When reporting paces, agents cite the source (e.g. "data/vdot tables, VDOT 40") rather
+  than claiming book-perfect values.

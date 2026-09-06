@@ -38,7 +38,7 @@ in full (docs/05 §2).
    ```
 
    The SKILL.md body states the load steps and three rules: read the full reference in the
-   profile language; never invent paces (look up `data/vdot_table.csv` or use the HR/feel
+   profile language; never invent paces (look up `data/vdot/` or use the HR/feel
    doctrine); where the generic safety layer conflicts, take the stricter rule.
 3. Put `coach-<new_id>_{zh,en}.md` under `references/`, filling the 8 fixed sections of the
    body template below.

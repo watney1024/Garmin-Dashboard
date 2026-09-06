@@ -34,7 +34,7 @@
    ---
    ```
 
-   SKILL.md 正文写加载步骤与三条铁律：按语言读全文、配速不自行发明（查 data/vdot_table.csv
+   SKILL.md 正文写加载步骤与三条铁律：按语言读全文、配速不自行发明（查 data/vdot/
    或心率/体感口径）、与通用安全层冲突取更严。
 3. 在 `references/` 放 `coach-<new_id>_{zh,en}.md`，按下方"正文模板"填 8 节。
 4. 在 `.agents/skills/README.md` 索引表加一行（含 coach id 与触发条件）。

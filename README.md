@@ -14,11 +14,13 @@ and generates / maintains a personalized HTML training-plan dashboard.
 
 ## What you get / 它能做什么
 
-- **Plan generation framework** — 从跑者档案生成计划：多个目标比赛选一个 A 赛、自定义每周
-  训练次数/长距离日/强度日、按 VDOT 表定各强度配速、**教练理念以 Markdown 文档包即插即用**
-  （首批：丹尼尔斯 VDOT / 80-20 / 汉森 / Advanced Marathoning）。
-  计划生成框架：由 `runner_profile` 驱动，`.agents/skills/` 下的教练 skill（Agent Skills
-  标准，可被 Claude Code / Copilot / Codex 等发现）决定方法论。
+- **Plan generation framework** — 由 `runner_profile` 驱动：多个比赛选一个 A 赛、自定义每周
+  训练次数/长距离日/强度日、VDOT 表定各强度配速、教练理念以 `.agents/skills/` 下的
+  Markdown skill 即插即用（首批：丹尼尔斯 VDOT / 80-20 / 汉森 / Advanced Marathoning /
+  莱迪亚德，可被 Claude Code / Copilot / Codex 等发现）。
+  Profile-driven plan generation with one A race, custom weekly structure, VDOT paces and
+  plug-in coach skills under `.agents/skills/` (initial: Daniels VDOT, 80/20, Hanson,
+  Advanced Marathoning, Lydiard).
 - **Weekly review loop** — 每周复盘：四段式复盘、三趋势、黄/红灯安全判定、动态调整课表并
   在版本表递增 `vN`。每周复盘闭环：周复盘、红黄灯、改计划、版本记录。
 - **Garmin data, hands-free** — `scripts/garmin_pull.py` 通过 garmin-mcp（stdio）自动拉全量
@@ -44,7 +46,7 @@ docs/00-10/          写给 agent 的规则文档（_zh/_en 双语）· the play
 .agents/skills/       教练理念技能包（Agent Skills）· coach methodology skills
 prompts/             可直接发给 agent 的提示词 · copy-paste prompts
 scripts/             Python 工具（零第三方运行时依赖）· stable scripts
-data/vdot_table.csv  VDOT 配速近似表 · approximate VDOT pace table (TODO)
+data/vdot/            VDOT 规范表（GPL-3.0 派生）· canonical VDOT tables
 examples/            虚构示例跑者的全套产物（CC0）· synthetic examples
 ```
 

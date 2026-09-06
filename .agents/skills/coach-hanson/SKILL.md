@@ -18,7 +18,7 @@ description: >-
 1. 按档案 `language`（zh/en）读取 `references/coach-hanson_<lang>.md` 全文。
 2. 照其中 8 个固定章节执行（强度体系/周骨架/周期化/闸门/红线/力量等）。
 3. 需每周 ≥5 跑；跑者档案 runs_per_week <5 时先建议换包并征得确认。
-4. 配速取自 `data/vdot_table.csv`（docs/09）或 ST 的"半马–马配区间/体感"。
+4. 配速取自 `data/vdot/`（docs/09）或 ST 的"半马–马配区间/体感"。
 5. 疲劳累积是特性，但黄/红灯与伤病规则照常（docs/03、docs/06），安全层不可移除。
 6. 该文件为"概括 + 应用指南"，非原书复制（版权声明在文件头）。
 

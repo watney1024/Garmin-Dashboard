@@ -63,5 +63,5 @@ paths/profile.
 
 - **Not finishing is not the problem; not reporting is.** Even if you ran half, say so.
 - The agent reads paces/HR from the data; you only own the "how does my body feel" half.
-- Coach packages and VDOT paces here are generic summaries or approximations; see a doctor
-  for any medical/injury questions.
+- Coach packages are generic summaries and the VDOT tables come from a GPL-3.0 export;
+  see a doctor for any medical/injury questions.

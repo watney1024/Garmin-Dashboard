@@ -26,8 +26,9 @@
 | Lactate threshold | LT | ≈15K–half pace | `LT 6–13 km` or `2×20 min` |
 | VO2max intervals | VO2 | ≈3–5K pace | `5×600–1000` (rest ≈ rep time) |
 
-- Pace source: GA/E by feel + HR; LT/VO2/MP from the VDOT table zones (docs/09). The book
-  carries its own tables; this repo uses its approximation tool and notes the difference.
+- Pace source: GA/E by feel + HR; LT/VO2/MP from the VDOT tables under `data/vdot/`
+  (docs/09). The book carries its own tables; this repo uses the data/vdot export and
+  notes any small differences.
 
 ## 3. Weekly skeleton construction
 

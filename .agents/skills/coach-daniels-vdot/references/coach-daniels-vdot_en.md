@@ -2,8 +2,8 @@
 
 > ⚠ **Provenance & copyright**: this file is this repo's **summary + application guide**
 > of the ideas in Jack Daniels' *Daniels' Running Formula*, not a copy/excerpt of the
-> book. Pace numbers come from this repo's approximation tools (`docs/09` /
-> `data/vdot_table.csv`; the official tables are copyrighted and not copied here). This
+> book. Pace numbers come from the tables in `data/vdot/` (a GPL-3.0-derived VDOT
+> export — see `data/vdot/README.md`; not a verbatim copy of the book). This
 > package drives the example runner's plan.
 
 ## 1. Origin & fit
@@ -27,7 +27,7 @@
 | Interval | I | VDOT I pace | `5×1000 I, rest ≈ rep time` / `8×400` |
 | Repetition | R | VDOT R (200–400 m, full recovery) | `8×200 R` for form/cadence |
 
-- Pace source: **always look up `data/vdot_table.csv`** (`scripts/vdot.py`); never
+- Pace source: **always look up `data/vdot/`** (`scripts/vdot.py`); never
   guess paces.
 - Shape: **E runs are the volume backbone** (≥70% of time); 1–2 Q sessions per week
   (T/I/R and long runs containing M segments); R keeps form & neural speed, low volume.

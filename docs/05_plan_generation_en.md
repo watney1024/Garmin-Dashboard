@@ -59,7 +59,7 @@ fixed; the content is filled from the coach package + profile:**
 | header | runner alias, A race & goal, VDOT, coach package, plan length | profile / VDOT / coach |
 | 1 Goals & calendar | the A/attempt/training races with roles; how non-A races are run | profile `races` |
 | 2 Weekly skeleton & phases | the 7-day role map, base/build/peak/taper phases | coach §3/§4 |
-| 3 Intensity system & paces | zone table: zone / pace / HR use / typical session; note "approximate VDOT paces" | docs/09 + coach §2 |
+| 3 Intensity system & paces | zone table: zone / pace / HR use / typical session; paces from the data/vdot tables | docs/09 + coach §2 |
 | 4 Week-by-week schedule | `week｜dates｜each day｜weekly volume`; non-A-race & recovery weeks flagged | flow §6 |
 | 5 Volume curve | `<canvas id="vol">` weekly-volume bars + long-run line | flow §6 |
 | 6 Recovery / holiday / race-week plans | purpose of recovery weeks; frequency rules for holidays/travel; race-week taper | coach §4 + generic |
@@ -78,7 +78,7 @@ Conventions:
 
 ## 5. Self-check before delivery
 
-- [ ] Every session pace traces back to `data/vdot_table.csv` or to the "HR/feel" doctrine;
+- [ ] Every session pace traces back to `data/vdot/` or to the "HR/feel" doctrine;
       no invented numbers.
 - [ ] The weekly skeleton matches the profile: session count, long-run day, quality days.
 - [ ] The volume curve obeys the coach and the generic safety layer (increase %, single-run

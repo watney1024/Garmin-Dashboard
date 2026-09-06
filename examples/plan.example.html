@@ -54,7 +54,7 @@
     <div><b>跑者</b> 示例跑者（虚构 · CC0）</div>
     <div><b>目标赛</b> 2027-11-21 示例国际马拉松 · <span class="tag">A</span>目标 <b>4:00</b></div>
     <div><b>教练包</b> daniels_vdot</div>
-    <div><b>VDOT</b> ≈40（近似，见附录说明）</div>
+    <div><b>VDOT</b> ≈40（查自 data/vdot 表）</div>
     <div><b>周期</b> W1 08/02 – W16 11/21（16 周）</div>
   </div>
   <p class="e mut">本文件为 <b>AI 陪练示例成品</b>：所有数据（跑者、成绩、赛事）均为虚构，仅用于演示 docs/05 的输出形态。
@@ -94,20 +94,21 @@
 → 减量 W14–W16（赛）。跑量只在"相邻正常周"递增 ≤15%，恢复周 ≥ 上周 65%。</p>
 
 <h2>三、强度体系与配速</h2>
-<p class="mut">VDOT≈40（由 5K 23:45 / 10K 49:30 交叉验证，近似表 <code>data/vdot_table.csv</code>）。</p>
+<p class="mut">VDOT≈40（由 5K 23:45 / 10K 49:30 经 <code>data/vdot/vdot_races.csv</code> 交叉验证；配速查 <code>data/vdot/vdot_paces.csv</code>）。</p>
 <table>
   <thead><tr><th>区</th><th>配速（/km）</th><th>心率用途</th><th>用在哪</th></tr></thead>
   <tbody>
-    <tr><td><b>E</b> 轻松</td><td>6:44 – 7:42</td><td>130–150 权威</td><td>周二(基础期)/周四/周五/长距离主体</td></tr>
-    <tr><td><b>M</b> 马配</td><td>5:30（目标课 5:35–5:45）</td><td>警报</td><td>长距离后段（W8 起逐步加入）</td></tr>
+    <tr><td><b>E</b> 轻松</td><td>6:19（表值=快端参考；跑慢允许）</td><td>130–150 权威</td><td>周二(基础期)/周四/周五/长距离主体</td></tr>
+    <tr><td><b>M</b> 马配</td><td>5:29（目标课 5:35–5:45）</td><td>警报</td><td>长距离后段（W8 起逐步加入）</td></tr>
     <tr><td><b>T</b> 阈值</td><td>5:06</td><td>—</td><td>周二 T 课（4–7 km 连续）</td></tr>
-    <tr><td><b>I</b> 间歇</td><td>4:36</td><td>—</td><td>周二 I 课（800/1000 m 组）</td></tr>
-    <tr><td><b>ST</b> 加速跑</td><td>4:20–4:40 ×30s</td><td>—</td><td>轻松课后 4–6 组</td></tr>
+    <tr><td><b>I</b> 间歇</td><td>4:42</td><td>—</td><td>周二 I 课（800/1000 m 组）</td></tr>
+    <tr><td><b>R</b> 重复 / <b>ST</b> 加速跑</td><td>R400m ≈106s / ST 4:20–4:40 ×30s</td><td>—</td><td>跑姿/速度小课</td></tr>
   </tbody>
 </table>
 <div class="note"><b>训练口径：</b>低强度（E/恢复）＝心率唯一权威，时间兜底，配速只当参考下限；
 高质量（M/T/I/比赛段）＝配速给区间、距离定负荷、心率当警报；长距离后段含 M 段时按马配验收。
-天热/没睡好/疲劳 → 全切"心率模式"。这些数字是近似 VDOT 配速（±10–20s/km）。</div>
+天热/没睡好/疲劳 → 全切"心率模式"。数值查自 <code>data/vdot/</code> 表（VDOT40 行），
+数据来源与许可见 docs/09 与 data/vdot/README.md。</div>
 
 <h2>四、逐周课表</h2>
 <table>
@@ -121,11 +122,11 @@
     <tr><td class="wk">W6<br><span class="e">09/06–09/12</span></td><td><b>T5</b>（4×1.5k，组休 1.5min）</td><td>E6</td><td>R5</td><td>LR 16（E）</td><td class="km tot">32</td></tr>
     <tr><td class="wk">W7<br><span class="e">09/13–09/19</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R5</td><td>10K 训练赛（2E+10T+2cd）<span class="tag">训练</span></td><td class="km tot">31</td></tr>
     <tr><td class="wk">W8<br><span class="e">09/20–09/26</span></td><td><b>T6</b>（2×3k，组休 2min）</td><td>E7</td><td>R5</td><td>LR 18（E+末段 M3）</td><td class="km tot">36</td></tr>
-    <tr><td class="wk">W9<br><span class="e">09/27–10/03</span></td><td><b>I6</b>（5×800@4:36，组休≈组时）</td><td>E7</td><td>R5</td><td>LR 20（E+末段 M4）</td><td class="km tot">38</td></tr>
+    <tr><td class="wk">W9<br><span class="e">09/27–10/03</span></td><td><b>I6</b>（5×800@4:42，组休≈组时）</td><td>E7</td><td>R5</td><td>LR 20（E+末段 M4）</td><td class="km tot">38</td></tr>
     <tr><td class="wk">W10<br><span class="e">10/04–10/10</span></td><td><b>T7</b>（2×3.5k，组休 2min）</td><td>E7</td><td>R5</td><td>LR 16（E）<span class="e">半马前控量</span></td><td class="km tot">35</td></tr>
     <tr><td class="wk">W11<br><span class="e">10/11–10/17</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R5</td><td>半马 <b>attempt</b>（≈21，认真留余地）<span class="tag">尝试</span></td><td class="km tot">38</td></tr>
     <tr><td class="wk">W12<br><span class="e">10/18–10/24</span></td><td><b>T7</b>（2×3.5k）</td><td>E7</td><td>R6</td><td>LR 20（E+末段 M5）</td><td class="km tot">40</td></tr>
-    <tr><td class="wk">W13<br><span class="e">10/25–10/31</span></td><td><b>I8</b>（6×1000@4:36，组休 3min）</td><td>E7</td><td>R6</td><td>LR 24（E+末段 M6）<span class="tag">峰值</span></td><td class="km tot">45</td></tr>
+    <tr><td class="wk">W13<br><span class="e">10/25–10/31</span></td><td><b>I8</b>（6×1000@4:42，组休 3min）</td><td>E7</td><td>R6</td><td>LR 24（E+末段 M6）<span class="tag">峰值</span></td><td class="km tot">45</td></tr>
     <tr><td class="wk">W14<br><span class="e">11/01–11/07</span></td><td><b>T6</b>（2×3k）</td><td>E6</td><td>R5</td><td>LR 16（E+末段 M3）<span class="tag">减量1</span></td><td class="km tot">33</td></tr>
     <tr><td class="wk">W15<br><span class="e">11/08–11/14</span></td><td>E6 + 4×30sST</td><td>E6</td><td>R4</td><td>LR 12（E）<span class="tag">减量2</span></td><td class="km tot">28</td></tr>
     <tr><td class="wk">W16<br><span class="e">11/15–11/21</span></td><td>E5</td><td>E5</td><td>—</td><td>全程马拉松 <b>A</b>（4:00）</td><td class="km tot">52<span class="e">（含比赛）</span></td></tr>

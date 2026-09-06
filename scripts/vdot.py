@@ -1,19 +1,21 @@
 # -*- coding: utf-8 -*-
 """
-vdot.py — approximate Jack Daniels VDOT calculator (stdlib only).
+vdot.py — VDOT calculator backed by the official-style VDOT tables (stdlib only).
+
+Two canonical tables live under data/vdot/ (see data/vdot/README.md):
+  - vdot_races.csv : (vdot, distance_m, seconds)  race-time equivalents per VDOT
+  - vdot_paces.csv : (vdot, intensity, distance_m, seconds) training paces/times
 
 What it does:
-  - race result -> VDOT score
-  - VDOT score  -> training pace bands (E / M / T / I / R) + equivalent race times
-  - can regenerate data/vdot_table.csv from the same formulas
-    (single source of truth: python scripts/vdot.py --gen-csv data/vdot_table.csv)
+  - race result over a STANDARD distance  -> VDOT  (from the races table)
+  - VDOT score                            -> training pace/times (E/M/T/I/R) + race
+                                             equivalents  (from the tables)
+  - a NON-standard distance still works via the classic running-economy equations
+    (used only as a fallback to estimate VDOT; training paces always come from the
+    tables, interpolated between integer VDOT rows).
 
-⚠ APPROXIMATE / 近似实现
-The VO2 economy and %VO2max curves used below are the classic public-domain style
-relationships reproduced by many community calculators (see docs/09_vdot_paces_zh.md).
-The intensity percentages are our own calibration; exact numbers can differ from
-the official printed Daniels' tables. Replace with an authoritative table when one
-is available (TODO in data/vdot_table.csv).
+⚠ LICENSE / 许可：the two tables are derived from a GPL-3.0-licensed export (see
+NOTICE.md and data/vdot/README.md). Interpolation/estimation code below is our own.
 
 Examples:
   python scripts/vdot.py --race-time 40:00 --distance 10k
@@ -21,45 +23,125 @@ Examples:
   python scripts/vdot.py --5k 21:00
 """
 import argparse
+import csv
 import json
 import math
 import os
 import sys
 
-# --- oxygen demand of running: VO2(ml/kg/min) from velocity v (m/min) ---------
-def vo2_of_velocity(v_mmin):
+DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))),
+                        "data", "vdot")
+PACES_CSV = os.path.join(DATA_DIR, "vdot_paces.csv")
+RACES_CSV = os.path.join(DATA_DIR, "vdot_races.csv")
+
+# --- race-distance helpers ----------------------------------------------------
+DIST = {"1500": 1500, "1mile": 1609.34, "3000": 3000, "2mile": 3218.69,
+        "5k": 5000, "8k": 8000, "5mile": 8045.47, "10k": 10000,
+        "15k": 15000, "10mile": 16093.4, "20k": 20000, "half": 21097.5,
+        "25k": 25000, "30k": 30000, "marathon": 42195, "full": 42195}
+
+
+def _load_tables():
+    """Returns paces[(vdot, intensity, dist_m)]->sec and races[(vdot, dist_m)]->sec."""
+    paces, races = {}, {}
+    if not (os.path.exists(PACES_CSV) and os.path.exists(RACES_CSV)):
+        raise SystemExit(
+            f"ERROR: missing VDOT tables under {DATA_DIR}. See data/vdot/README.md "
+            "(LICENSE: GPL-3.0 export, see NOTICE.md).")
+    with open(PACES_CSV, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            paces[(int(float(r["vdot"])), r["intensity"], float(r["distance_m"]))] = \
+                float(r["seconds"])
+    with open(RACES_CSV, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            races[(int(float(r["vdot"])), float(r["distance_m"]))] = float(r["seconds"])
+    return paces, races
+
+
+def _pacerow(paces, vd, zone):
+    """All present (dist_m, sec) rows for a (vd, zone), dist asc."""
+    out = [((d), paces[(vd, zone, d)]) for (v, z, d) in paces
+           if v == vd and z == zone]
+    return sorted(out)
+
+
+def _pace_per_km(paces, vd, zone):
+    """Seconds per km for a zone at integer vdot (scale from any present row)."""
+    rows = _pacerow(paces, vd, zone)
+    if not rows:
+        return None
+    # prefer an actual 1 km row, otherwise scale from the shortest available
+    for d, s in rows:
+        if abs(d - 1000.0) < 0.01:
+            return s
+    d, s = rows[0]
+    return s * 1000.0 / d
+
+
+def _interp(f, x):
+    """Linear interpolation of f over integer VDOT rows around float x."""
+    lo, hi = int(math.floor(x)), int(math.ceil(x))
+    if lo == hi:
+        v = f(lo)
+        return v
+    v_lo, v_hi = f(lo), f(hi)
+    if v_lo is None and v_hi is None:
+        return None
+    if v_lo is None:
+        return v_hi
+    if v_hi is None:
+        return v_lo
+    t = (x - lo) / (hi - lo)
+    return v_lo + (v_hi - v_lo) * t
+
+
+def paces_at(paces, vdot):
+    """zone -> (slow_km, fast_km) not meaningful from single table values; instead
+    return dict zone -> seconds/km reference plus R-400 seconds."""
+    out = {}
+    for zone in ("E", "M", "T", "I", "R"):
+        per_km = _interp(lambda v: _pace_per_km(paces, v, zone), vdot)
+        if per_km is not None:
+            out[zone] = {"km_s": per_km}
+    r400 = _interp(lambda v: _pick(paces, v, "R", 400.0), vdot)
+    out.setdefault("R", {})["r400_s"] = r400
+    return out
+
+
+def _pick(paces, vd, zone, want_d):
+    rows = _pacerow(paces, vd, zone)
+    if not rows:
+        return None
+    for d, s in rows:
+        if abs(d - want_d) < 0.01:
+            return s
+    # nearest present distance, scaled linearly to the wanted distance
+    d, s = min(rows, key=lambda t: abs(t[0] - want_d))
+    return s * want_d / d
+
+
+def race_equiv(races, vdot, dist_m):
+    return _interp(lambda v: races.get((v, dist_m)), vdot)
+
+
+# --- fallback: classic running-economy equations (non-standard distances only) ---
+def _vo2(v_mmin):
     return -4.60 + 0.182258 * v_mmin + 0.000104 * v_mmin ** 2
 
 
-# --- fraction of VO2max sustainable for a race of t minutes -------------------
-def pct_vo2max(t_min):
-    return (0.8
-            + 0.1894393 * math.exp(-0.012778 * t_min)
+def _pct(t_min):
+    return (0.8 + 0.1894393 * math.exp(-0.012778 * t_min)
             + 0.2989558 * math.exp(-0.1932605 * t_min))
 
 
-def _solve_velocity(vo2):
-    """Velocity (m/min) that demands a given VO2; quadratic solved for positive root."""
-    # 0.000104 v^2 + 0.182258 v + (-4.60 - vo2) = 0
-    a, b, c = 0.000104, 0.182258, -4.60 - vo2
-    disc = b * b - 4 * a * c
-    if disc < 0:
-        return None
-    return (-b + math.sqrt(disc)) / (2 * a)
+def _vdot_formula(dist_m, time_s):
+    return _vo2(dist_m / time_s * 60.0) / _pct(time_s / 60.0)
 
 
-# --- race distances (metres) --------------------------------------------------
-DIST = {"1mile": 1609.34, "5k": 5000, "10k": 10000, "half": 21097.5,
-        "marathon": 42195, "full": 42195}
-
-
-def parse_time(s):
-    """'H:MM:SS', 'MM:SS', 'M:SS' or plain seconds -> seconds."""
+def _parse_time(s):
     if isinstance(s, (int, float)):
         return float(s)
     parts = [p for p in s.strip().split(":") if p != ""]
-    if not parts:
-        raise ValueError(f"bad time: {s!r}")
     if len(parts) == 3:
         return int(parts[0]) * 3600 + int(parts[1]) * 60 + float(parts[2])
     if len(parts) == 2:
@@ -67,156 +149,129 @@ def parse_time(s):
     return float(parts[0])
 
 
-def fmt_time(sec):
-    sec = max(0, round(sec))
-    h, r = divmod(sec, 3600)
-    m, s = divmod(r, 60)
+def _fmt_time(sec):
+    sec = max(0.0, float(sec))
+    h = int(sec // 3600)
+    m = int((sec - h * 3600) // 60)
+    s = int(round(sec - h * 3600 - m * 60))
+    if s == 60:
+        s = 0
+        m += 1
     if h:
         return f"{h}:{m:02d}:{s:02d}"
     return f"{m}:{s:02d}"
 
 
-def fmt_pace(sec_per_km):
-    return fmt_time(sec_per_km)
+def _fmt_pace(sec_per_km):
+    return _fmt_time(sec_per_km)
 
 
-def vdot_from_race(dist_m, time_s):
-    """VDOT from an all-out race performance over a known distance."""
-    v = dist_m / time_s * 60.0           # m/min
-    t_min = time_s / 60.0
-    return vo2_of_velocity(v) / pct_vo2max(t_min)
-
-
-def equivalent_time(vdot, dist_m, lo=60, hi=6 * 3600, tol=0.05):
-    """Bisect: the race time at this distance that yields `vdot`."""
-    for _ in range(80):
-        mid = (lo + hi) / 2.0
-        if vdot_from_race(dist_m, mid) > vdot:
-            lo = mid
-        else:
-            hi = mid
-        if hi - lo < tol:
-            break
-    return (lo + hi) / 2.0
-
-
-# --- intensity percentages of VDOT (our calibration, approximate) --------------
-# E = easy range (slow bound .. fast bound), M = marathon, T = threshold,
-# I = interval, R = repetition (short, faster than I).
-PCT = {"E": (0.52, 0.62), "M": (0.80, 0.80), "T": (0.88, 0.88),
-       "I": (1.00, 1.00), "R": (1.04, 1.04)}
-
-
-def training_paces(vdot):
-    """Return dict zone -> (low_s_per_km, high_s_per_km) where low <= high."""
-    out = {}
-    for zone, (lo_pct, hi_pct) in PCT.items():
-        v_hi = _solve_velocity(lo_pct * vdot)   # slower speed -> slow bound
-        v_lo = _solve_velocity(hi_pct * vdot)   # faster speed -> fast bound
-        if v_hi is None or v_lo is None:
-            continue
-        slow = 1000.0 / v_hi * 60.0             # seconds per km
-        fast = 1000.0 / v_lo * 60.0
-        out[zone] = (slow, fast)
-    return out
+# ---------------------------------------------------------------------------
+def _vdot_from_race(paces, races, dist_m, time_s):
+    """VDOT from a race time. Standard distances use the races table (interpolated);
+    non-standard distances fall back to the classic equations."""
+    keys = sorted({d for (_, d) in races})
+    match = min(keys, key=lambda d: abs(d - dist_m))
+    if abs(match - dist_m) < max(1.0, dist_m * 0.001):
+        # bracket by vdot: higher vdot -> shorter time
+        vdots = sorted({v for (v, _) in races})
+        times = [(v, races[(v, match)]) for v in vdots if (v, match) in races]
+        lo_i = None
+        for i in range(len(times) - 1):
+            if times[i + 1][1] <= time_s < times[i][1] or \
+               (times[i][1] == time_s):
+                lo_i = i
+                break
+        if lo_i is None:
+            if time_s >= times[0][1]:
+                # slower than the lowest vdot row: extrapolate below vdot 30
+                (v0, t0), (v1, t1) = times[0], times[1]
+            elif time_s <= times[-1][1]:
+                # faster than the highest row: extrapolate above vdot 85
+                (v0, t0), (v1, t1) = times[-2], times[-1]
+            else:
+                raise RuntimeError("unreachable")
+            return v0 + (t0 - time_s) / (t0 - t1) * (v1 - v0)
+        (v0, t0), (v1, t1) = times[lo_i], times[lo_i + 1]
+        if t0 == t1:
+            return float(v0)
+        return v0 + (t0 - time_s) / (t0 - t1) * (v1 - v0)
+    return _vdot_formula(dist_m, time_s)
 
 
 def cli():
     ap = argparse.ArgumentParser(
-        description="Approximate Jack Daniels VDOT calculator (see module docstring).",
+        description="VDOT calculator backed by data/vdot/*.csv "
+                    "(GPL-3.0-derived tables; see NOTICE.md).",
         epilog="Examples:\n"
                "  python scripts/vdot.py --race-time 40:00 --distance 10k\n"
                "  python scripts/vdot.py --vdot 48\n"
                "  python scripts/vdot.py --5k 21:00")
-    ap.add_argument("--race-time", type=parse_time, default=None,
+    ap.add_argument("--race-time", type=_parse_time, default=None,
                     help="all-out race time, e.g. 40:00 or 1:23:45")
     ap.add_argument("--distance", default=None,
-                    help="race distance: 5k, 10k, half, marathon (or metres)")
+                    help="race distance: 1500/1mile/3k/5k/8k/10k/15k/10mile/20k/half/"
+                         "25k/30k/marathon (or metres for a non-standard distance)")
     ap.add_argument("--vdot", type=float, default=None,
                     help="direct VDOT score (skip the race conversion)")
-    for dist, label in (("5k", "--5k"), ("10k", "--10k"),
-                        ("half", "--half"), ("marathon", "--marathon")):
-        ap.add_argument(label, type=parse_time, default=None,
+    for dist, flag in (("5k", "--5k"), ("10k", "--10k"),
+                       ("half", "--half"), ("marathon", "--marathon")):
+        ap.add_argument(flag, type=_parse_time, default=None,
                         help=f"shortcut: race time over {dist}")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
-    ap.add_argument("--gen-csv", metavar="OUT.csv", default=None,
-                    help="regenerate the vdot pace table CSV and exit")
-    ap.add_argument("--min-vdot", type=float, default=30.0)
-    ap.add_argument("--max-vdot", type=float, default=85.0)
     a = ap.parse_args()
 
-    if a.gen_csv:
-        gen_csv(a.gen_csv, a.min_vdot, a.max_vdot)
-        return 0
+    paces, races = _load_tables()
 
     if a.vdot is None:
-        if a.race_time and a.distance:
-            dist_m = DIST.get(a.distance) or float(a.distance)
-            vdot = vdot_from_race(dist_m, a.race_time)
-            src = f"race {a.distance} {fmt_time(a.race_time)}"
+        if a.race_time is not None and a.distance:
+            dist_m = DIST.get(a.distance)
+            dist_m = float(a.distance) if dist_m is None else dist_m
+            vdot = _vdot_from_race(paces, races, dist_m, a.race_time)
+            src = f"race {a.distance} {_fmt_time(a.race_time)}"
         else:
-            pairs = [(k, v) for k, v in
-                     (("5k", a.__dict__.get("5k")), ("10k", a.__dict__.get("10k")),
-                      ("half", a.__dict__.get("half")), ("marathon", a.__dict__.get("marathon")))]
-            pairs = [(k, v) for k, v in pairs if v]
+            pairs = [(k, a.__dict__.get(k)) for k in ("5k", "10k", "half", "marathon")]
+            pairs = [(k, v) for k, v in pairs if v is not None]
             if not pairs:
                 ap.error("provide --race-time + --distance, --vdot, or a --<dist> shortcut")
-            dist_m, t = DIST[pairs[0][0]], pairs[0][1]
-            vdot = vdot_from_race(dist_m, t)
-            src = f"race {pairs[0][0]} {fmt_time(t)}"
+            dist_m = DIST[pairs[0][0]]
+            vdot = _vdot_from_race(paces, races, dist_m, pairs[0][1])
+            src = f"race {pairs[0][0]} {_fmt_time(pairs[0][1])}"
     else:
         vdot = a.vdot
         src = "given directly"
 
-    zones = training_paces(vdot)
-    eq = {d: equivalent_time(vdot, DIST[d]) for d in ("5k", "10k", "half", "marathon")}
+    zones = paces_at(paces, vdot)
+    eq = {d: race_equiv(races, vdot, DIST[d]) for d in ("5k", "10k", "half", "marathon")}
+    eq = {d: v for d, v in eq.items() if v is not None}
 
     if a.json:
-        print(json.dumps({
+        out = {
             "vdot": round(vdot, 1), "source": src,
-            "paces": {z: [fmt_pace(zones[z][0]), fmt_pace(zones[z][1])]
-                      for z in zones},
-            "equivalent": {d: fmt_time(eq[d]) for d in eq},
-        }, ensure_ascii=False, indent=2))
+            "paces": {z: {"km": _fmt_pace(v["km_s"]) if "km_s" in v else None,
+                          "r400_s": v.get("r400_s")} for z, v in zones.items()},
+            "equivalent": {d: _fmt_time(eq[d]) for d in eq},
+            "table": "data/vdot/ (GPL-3.0-derived, see NOTICE.md)"}
+        print(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
 
     print(f"VDOT  {vdot:.1f}  (from {src})")
     print("-" * 46)
     for z in ("E", "M", "T", "I", "R"):
-        if z in zones:
-            lo, hi = fmt_pace(zones[z][0]), fmt_pace(zones[z][1])
-            print(f"  {z:<2}  {lo} - {hi} /km")
+        v = zones.get(z)
+        if not v:
+            continue
+        if v.get("km_s"):
+            print(f"  {z:<2}  {_fmt_pace(v['km_s'])} /km")
+    if zones.get("R") and zones["R"].get("r400_s"):
+        print(f"  R   400m ≈ {zones['R']['r400_s']:.0f} s")
     print("-" * 46)
     for d in ("5k", "10k", "half", "marathon"):
-        print(f"  {d:<9} equiv {fmt_time(eq[d])}")
-    print("\nApproximate values only (see scripts/vdot.py docstring + docs/09).")
+        if d in eq:
+            print(f"  {d:<9} equiv {_fmt_time(eq[d])}")
+    print("\nPaces/times from data/vdot/ tables (GPL-3.0-derived; see NOTICE.md).")
+    print("E/recovery execution is HR/feel first — the E pace is a reference floor.")
     return 0
-
-
-# ---------------------------------------------------------------------------
-# regenerate the pace-table CSV
-# ---------------------------------------------------------------------------
-def gen_csv(path, vmin=30.0, vmax=85.0):
-    header = "vdot,e_slow_minkm,e_fast_minkm,m_minkm,t_minkm,i_minkm,r_400m_sec"
-    rows = [header]
-    for v in range(int(round(vmin)), int(round(vmax)) + 1):
-        z = training_paces(float(v))
-        e_slow, e_fast = z["E"]
-        vals = [
-            str(v),
-            f'{fmt_pace(e_slow)}',
-            f'{fmt_pace(e_fast)}',
-            fmt_pace(z["M"][0]),
-            fmt_pace(z["T"][0]),
-            fmt_pace(z["I"][0]),
-            str(int(round(z["R"][0] * 0.4))),
-        ]
-        rows.append(",".join(vals))
-    with open(path, "w", encoding="utf-8") as f:
-        f.write("# approximate VDOT pace table (see scripts/vdot.py + docs/09).\n")
-        f.write("# TODO: replace with an authoritative table when available.\n")
-        f.write("\n".join(rows) + "\n")
-    print("wrote", path, "rows", len(rows) - 1)
 
 
 if __name__ == "__main__":

@@ -17,6 +17,7 @@
 | `polarized_80_20` | `.agents/skills/coach-polarized-80-20/` | profile.coach == polarized_80_20 且生成/更新计划 |
 | `hanson` | `.agents/skills/coach-hanson/` | profile.coach == hanson 且生成/更新计划 |
 | `advanced_marathoning` | `.agents/skills/coach-advanced-marathoning/` | profile.coach == advanced_marathoning 且生成/更新计划 |
+| `lydiard` | `.agents/skills/coach-lydiard/` | profile.coach == lydiard 且生成/更新计划 |
 
 每个 skill 的 `references/coach-<id>_zh.md` / `_en.md` 是**完整方法论正文**（8 固定章节），
 `SKILL.md` 负责精确触发与加载指引。**内容均为"概括 + 应用指南"，非原书复制（版权声明在

@@ -30,10 +30,10 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent entry point | agent first stop |
 | `docs/00–10` | rule docs (bilingual _zh/_en) | agents, all |
-| `.agents/skills/` | coach methodology skills (Agent Skills standard; 4 initial + template guide) | agents, loaded fully before plan generation |
+| `.agents/skills/` | coach methodology skills (Agent Skills standard; 5 initial + how-to docs/10) | agents, loaded fully before plan generation |
 | `prompts/` | copy-paste prompts for the agent | runners |
 | `scripts/` | data / schedule / VDOT tools (stdlib only) | run directly |
-| `data/vdot_table.csv` | approximate VDOT pace table (TODO authoritative) | lookups |
+| `data/vdot/` | canonical VDOT tables (pace & race; GPL-3.0-derived, see README) | lookups |
 | `examples/` | fabricated example-runner set (CC0) | study by analogy |
 | `LICENSE / NOTICE.md` | MIT + third-party notices | — |
 
@@ -66,5 +66,5 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 | 06 | weekly review: four sections, the lights, gates, plan-change mechanics, post-race handling |
 | 07 | runner playbook (human view: how to ask, three red lines) |
 | 08 | runner profile schema: multiple races & the A race, fields, maintenance |
-| 09 | VDOT: concept, tooling, conversions, approximation statement |
+| 09 | VDOT: concept, tables (data/vdot), tooling, conversions |
 | 10 | adding a new coach skill |

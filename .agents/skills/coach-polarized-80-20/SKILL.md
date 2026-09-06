@@ -18,7 +18,7 @@ description: >-
 1. 按档案 `language`（zh/en）读取 `references/coach-polarized-80-20_<lang>.md` 全文。
 2. 照其中 8 个固定章节执行（强度体系/周骨架/周期化/闸门/红线/力量等）。
 3. 强度分布按**时间**计量并核算 80/20，低强度用心率/体感；少数质量课配速取自
-   `data/vdot_table.csv`（docs/09）。
+   `data/vdot/`（docs/09）。
 4. 与通用安全层（docs/03、docs/06）冲突时取更严；安全层不可移除。
 5. 该文件为"概括 + 应用指南"，非原书复制（版权声明在文件头）。
 

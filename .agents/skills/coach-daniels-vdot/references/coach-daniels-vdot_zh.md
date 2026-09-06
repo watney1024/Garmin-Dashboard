@@ -1,8 +1,8 @@
 # 丹尼尔斯 VDOT `daniels_vdot`
 
 > ⚠ **出处与版权声明**：本文件是本仓库对 Jack Daniels《Daniels' Running Formula》
-> 理念的**概括 + 应用指南**，不是原书复制/摘录。配速数值来自仓库近似工具 `docs/09`
-> / `data/vdot_table.csv`（官方表有版权，本仓库未复制）。本文件按示例跑者主计划使用。
+> 理念的**概括 + 应用指南**，不是原书复制/摘录。配速数值来自 `data/vdot/` 表
+> （GPL-3.0 导出的 VDOT 数据，见 `data/vdot/README.md`，非直接影印原书）。本文件按示例跑者主计划使用。
 
 ## 1. 出处与适用
 
@@ -23,7 +23,7 @@
 | 间歇 Interval | I | VDOT I 配速 | `5×1000 I，组休≈组时` / `8×400` |
 | 重复 Repetition | R | VDOT R（200–400m，充分恢复） | `8×200 R` 放松脚步频 |
 
-- 配速来源：**一律查 `data/vdot_table.csv`**（`scripts/vdot.py`），不许拍脑袋。
+- 配速来源：**一律查 `data/vdot/`**（`scripts/vdot.py`），不许拍脑袋。
 - 结构大致：**E 课占跑量主体**（按时间计 ≥70%）；每周 1–2 个 Q 课（含 T/I/R 与含 M 段的
   长距离）；R 用于保持跑姿与速度神经，量小。
 

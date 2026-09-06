@@ -29,10 +29,10 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent 入口 | agent 第一站 |
 | `docs/00–10` | 规则文档（双语 _zh/_en） | agent 全部 |
-| `.agents/skills/` | 教练理念技能包（Agent Skills 标准，4 个首批 + 模板指南） | agent 生成计划前整包加载 |
+| `.agents/skills/` | 教练理念技能包（Agent Skills 标准，5 个首批 + 新增指南 docs/10） | agent 生成计划前整包加载 |
 | `prompts/` | 可直接发 agent 的提示词 | 跑者复制粘贴 |
 | `scripts/` | 数据/排课/VDOT 工具（stdlib） | 脚本直跑 |
-| `data/vdot_table.csv` | 近似 VDOT 配速表（TODO 权威表） | 查询 |
+| `data/vdot/` | VDOT 规范表（配速/等效成绩；GPL-3.0 派生，见其 README） | 查询 |
 | `examples/` | 虚构示例跑者全套（CC0） | 对照学习 |
 | `LICENSE / NOTICE.md` | MIT + 第三方声明 | — |
 

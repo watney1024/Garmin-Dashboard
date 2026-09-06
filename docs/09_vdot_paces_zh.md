@@ -1,68 +1,68 @@
 # 09 · VDOT：成绩 → 训练配速（写给 AI agent）
 
-## 1. 概念
+## 1. 概念与数据
 
-**VDOT**（Jack Daniels 体系）是"跑步能力指数"：由一场全力以赴的成绩反推，单位≈VO₂max。
-它把一个跑者的能力压成一个分数，再用这个分数查出**各训练强度的目标配速**。
-来源：Jack Daniels, *Daniels' Running Formula*；本仓库只做概括与工具，未复制其表格（见下"近似声明"）。
+**VDOT**（Jack Daniels 体系）把一次全力以赴的成绩换算成"跑步能力指数"，再用它查**各训练
+强度的配速/时间**。来源：Jack Daniels, *Daniels' Running Formula*。
 
-用途：
-- 用 PR（5K/10K/半马/全马任取 ≥1）→ VDOT → **E/M/T/I/R 配速**。
-- 低强度日（E/恢复）执行口径仍是**心率/体感优先**（docs/03/06 的安全层与训练口径），VDOT 的 E 配速作参考下限；**强度课（T/I/R/M 段）以 VDOT 配速为准**。
-- 测试赛成绩 → 换算 → 更新目标（docs/06 的闸门）。
+本仓库使用**两张规范数据表**（位于 `data/vdot/`，均为 tidy 长表）：
 
-## 2. 强度分区（近似值，含各区定位）
+| 文件 | 行格式 | 用途 |
+|---|---|---|
+| `data/vdot/vdot_races.csv` | `vdot, distance_m, seconds` | **成绩 → VDOT**：在标准距离列里找等效成绩 |
+| `data/vdot/vdot_paces.csv` | `vdot, intensity, distance_m, seconds` | **VDOT → 训练时间/配速**（E/M/T/I/R × 各距离） |
 
-| 区 | 全名 | 定位 | VO2 比例(本工具近似) |
+- VDOT 30–85，整数行；非整数由 `scripts/vdot.py` 在相邻行间**线性插值**。
+- 半马/马拉松距离以米存（`21097.5` / `42195`）。
+- ⚠ **许可**：表数据派生自一个 **GPL-3.0 授权**的 VDOT 导出（项目名/链接待补，见
+  `data/vdot/README.md` 与 `NOTICE.md`，完整文本 `data/vdot/GPL-3.0.txt`）。再分发须遵守
+  GPLv3；不是直接影印原书表格。
+
+## 2. 强度分区
+
+| 区 | 全名 | 定位 | VDOT40 示例（/km 或 ×距离） |
 |---|---|---|---|
-| E | Easy | 有氧基础、占比最大 | ≈52–62% |
-| M | Marathon | 马拉松配速段 | ≈80% |
-| T | Threshold | 乳酸阈值（巡航间歇/持续 20–40min） | ≈88% |
-| I | Interval | VO2max 间歇（3–5min 组） | ≈100% |
-| R | Repetition | 短速度/跑姿（200–400m，充分恢复） | ≈104% |
+| E | Easy | 有氧基础，最大占比 | `6:19`/km（快端参考；跑慢不限） |
+| M | Marathon | 马配段 | `5:29`/km |
+| T | Threshold | 乳酸阈值（巡航间歇/持续） | `5:06`/km（T/1000 = 1km） |
+| I | Interval | VO2max 间歇（3–5min 组） | `4:42`/km（I/1000 = 1km） |
+| R | Repetition | 短速度/跑姿（200–400m，充分恢复） | 400m ≈ `1:46` |
 
-例（VDOT 40 行，摘自 `data/vdot_table.csv`）：
+> 表中"R/km"由 R 距离换算仅为展示；课表引用 R 时用**对应距离时间**（如 R/400 106s）。
 
-```
-E  6:44 – 7:42 /km     M  5:30 /km     T  5:06 /km
-I  4:36 /km            R 400m ≈ 107 秒
-```
+## 3. 执行口径（重要）
 
-## 3. 工具与数据
+- **低强度（E/恢复）**：心率/体感是唯一权威，时间兜底。`E/km` 表值只是**快端参考下限**，
+  轻松跑跑得更慢永远允许。天热/没睡好/疲劳全切"心率模式"。
+- **高质量（M/T/I/R/比赛段）**：以表值为准给区间；距离定负荷，心率当警报。
+- VDOT 更新前，训练配速一律用**当前** VDOT 的查表值，不用目标 VDOT。
 
-- `scripts/vdot.py`：`--5k 23:45` / `--race-time 1:52:30 --distance half` / `--vdot 40`；`--json` 输出；`--gen-csv` 重新生成表。
-- `data/vdot_table.csv`：行 = VDOT 30–85（步进 1），列 = `e_slow_minkm, e_fast_minkm, m_minkm, t_minkm, i_minkm, r_400m_sec`。
+## 4. 怎么用（`scripts/vdot.py`）
 
-### 换算方法（透明可复现）
-
-工具使用公开流传的跑步耗氧关系与比赛时长占比曲线（社区计算器通用），叠加本仓库校准的强度比例：
-
-```
-跑步耗氧:     VO2 = -4.60 + 0.182258·v + 0.000104·v²     (v = m/min)
-比赛可维持比例: %VO2max = 0.8 + 0.1894393·e^(-0.012778·t)
-                        + 0.2989558·e^(-0.1932605·t)      (t = 分钟)
-比赛 VDOT = VO2 ÷ %VO2max
-强度配速   = 解 VO2(v) = 比例 × VDOT 得到速度 v
+```bash
+# 成绩 → VDOT（标准距离：查 vdot_races 表）
+python scripts/vdot.py --5k 23:45
+python scripts/vdot.py --race-time 1:52:30 --distance half
+# VDOT → 训练配速/时间 + 等效成绩（vdot_paces / vdot_races）
+python scripts/vdot.py --vdot 40
+python scripts/vdot.py --vdot 40 --json
 ```
 
-## 4. ⚠ 近似声明（必须传达给使用者）
+- 标准距离名：`1500 1mile 3000 2mile 5k 8k 5mile 10k 15k 10mile 20k half 25k 30k marathon`。
+- 非标准距离（如 6k）走**经典跑氧公式兜底估 VDOT**；训练配速仍来自表（插值）。
+- 例（VDOT≈40）：E 6:19 / M 5:29 / T 5:06 / I 4:42 / R400≈106s；等效 5K 24:08 / 10K 50:03 /
+  半马 1:50:59 / 全马 3:49:45。
 
-- `data/vdot_table.csv` 与 `vdot.py` 为**近似实现**：强度比例是我们对照公开资料的校准值，非原书逐值；个别行可能与官方印刷表差 10–20 s/km 内。
-- 官方 Jack Daniels 表有版权，本仓库**不复制**。CSV 头部标了 `TODO: 待替换权威表`——若拿到可授权的权威数据，用 `python scripts/vdot.py --gen-csv data/vdot_table.csv` 或直接替换 CSV 即可（`vdot.py` 读表时以表为准）。
-- agent 报告配速时，写明"近似 VDOT 配速，约 ±10–20 s/km"。
+## 5. 从档案 PR 推 VDOT（docs/08 的配套规则）
 
-## 5. 怎么用
+1. 取 `pr` 中最近 6 个月、最可信的成绩，用 `vdot.py` 求 VDOT。
+2. 其余成绩交叉验证：应相差 ≤1；差 >1 以最近且全力以赴者为准，向跑者说明。
+3. 多个不同距离成绩可选**按目标加权**（如以全马为目标时全马权重更高）——这是 TODO 项，
+   当前取"最可信最近一个"。
+4. A/attempt 赛后写回新成绩 → 重算 VDOT；变化 ≥1 经周复盘提议更新配速。
 
-### 从档案推 VDOT
-1. 读 `runner_profile.yaml` 的 `pr`。
-2. 对每个成绩跑 `vdot.py` 求分；**取最可信/最近的一个为 VDOT**，其余作交叉验证（应相差 ≤1）。
-3. 多个成绩差 >1：以最近且全力以赴的成绩为准；向跑者说明差异（可能解释为周期阶段/状态差异）。
+## 6. 备注
 
-### 一致性规则
-- PR 要标日期；**>6 个月的成绩不作为唯一依据**。
-- A/attempt 赛后：写入新成绩 → 重算 VDOT；变化 ≥1 时经周复盘提议更新计划配速。
-- 训练配速永远基于**当前 VDOT**，不用目标 VDOT（不"跑向更快的未来配速"）。
-
-### 生成计划时
-- 把查到的 E/M/T/I/R 配速写进计划第七章"强度体系与配速"（docs/05 的章节槽位）。
-- 热季/状态差时全切"心率+体感"（E 配速仅参考），与 docs/03 一致。
+- 表格数值来自第三方 GPL-3.0 导出，个别行可能与 Daniels 原书印刷表有 1–2 s 级差异；若你
+  拿到可直接授权/公有领域的权威版本，替换 `data/vdot/*.csv` 即可（格式保持 tidy）。
+- agent 报告配速时注明出处（如"data/vdot 表，VDOT40"），不要声称是原书逐值。
