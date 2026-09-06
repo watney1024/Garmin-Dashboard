@@ -31,3 +31,6 @@ data/garmin_workout_registry.json
 # ===== local runner profile (never commit the real one) =====
 *.yaml
 !examples/*.yaml
+
+# ===== local session handoff (not for the public repo) =====
+HANDOFF.md
