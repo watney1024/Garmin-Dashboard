@@ -19,7 +19,7 @@
 
 ```
 Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.csv + inbox/activity_<id>.csv
-        runner_profile.yaml + 教练包(coaches/) + VDOT(09) ──> plan HTML(05)
+        runner_profile.yaml + 教练 skill(.agents/skills/) + VDOT(09) ──> plan HTML(05)
         每周复盘(06) ──> 改计划 + 版本 vN + 更新档案
 ```
 
@@ -29,7 +29,7 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent 入口 | agent 第一站 |
 | `docs/00–10` | 规则文档（双语 _zh/_en） | agent 全部 |
-| `coaches/` | 教练理念文档包（4 个首批 + 模板） | agent 生成计划前整包加载 |
+| `.agents/skills/` | 教练理念技能包（Agent Skills 标准，4 个首批 + 模板指南） | agent 生成计划前整包加载 |
 | `prompts/` | 可直接发 agent 的提示词 | 跑者复制粘贴 |
 | `scripts/` | 数据/排课/VDOT 工具（stdlib） | 脚本直跑 |
 | `data/vdot_table.csv` | 近似 VDOT 配速表（TODO 权威表） | 查询 |

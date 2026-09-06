@@ -20,7 +20,7 @@ runner does two things only: maintain the `runner_profile` + say one sentence a 
 
 ```
 Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.csv + inbox/activity_<id>.csv
-        runner_profile.yaml + coach package(coaches/) + VDOT(09) ──> plan HTML(05)
+        runner_profile.yaml + coach skill(.agents/skills/) + VDOT(09) ──> plan HTML(05)
         weekly review(06) ──> edit plan + version vN + update profile
 ```
 
@@ -30,7 +30,7 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent entry point | agent first stop |
 | `docs/00–10` | rule docs (bilingual _zh/_en) | agents, all |
-| `coaches/` | coach methodology packages (4 initial + template) | agents, loaded fully before plan generation |
+| `.agents/skills/` | coach methodology skills (Agent Skills standard; 4 initial + template guide) | agents, loaded fully before plan generation |
 | `prompts/` | copy-paste prompts for the agent | runners |
 | `scripts/` | data / schedule / VDOT tools (stdlib only) | run directly |
 | `data/vdot_table.csv` | approximate VDOT pace table (TODO authoritative) | lookups |

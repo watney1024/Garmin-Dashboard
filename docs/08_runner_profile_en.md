@@ -38,7 +38,7 @@ pr:
   10k: MM:SS
   half: H:MM:SS
   marathon: H:MM:SS
-coach: daniels_vdot            # chosen coach package id, see coaches/
+coach: daniels_vdot            # chosen coach id -> .agents/skills/coach-<id>/
 strength:          # optional
   sessions_per_week: N
   days: { Wednesday: lower, Saturday: "upper/core/calf" }
@@ -78,9 +78,10 @@ Rules:
 - After a race: write the new result into `pr` (keep the date), trigger a VDOT update; if
   VDOT changes by ≥1, propose a plan update through the weekly-review flow.
 
-## 4. Choosing the coach package (see docs/10 / coaches/)
+## 4. Choosing the coach skill (see docs/10 / .agents/skills/)
 
-- `coach` stores a package id that **must match a directory `coaches/<id>/`**.
+- `coach` stores the skill id that **must map to a directory `.agents/skills/coach-<id>/`**
+  (id with `_`→`-`), e.g. `daniels_vdot` → `coach-daniels-vdot`.
 - Before generating a plan: read the selected package in full and obey it. If the profile
   and package clearly mismatch (target distance / weekly volume / ability band), explain
   and propose a switch; only switch after the runner confirms.

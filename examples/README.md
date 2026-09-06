@@ -22,7 +22,7 @@ Example Runner". No real person's data is used. You may copy and adapt these fil
 ## The flow, demonstrated / 流程演示
 
 1. 读 `runner_profile.example.yaml` → docs/08
-2. 加载 `coaches/daniels_vdot/README_zh.md`（或 _en）
+2. 加载 `.agents/skills/coach-daniels-vdot/SKILL.md` 与 `references/coach-daniels-vdot_zh.md`（或 _en）
 3. 由 PR 求 VDOT≈40：`python scripts/vdot.py --10k 49:30`
 4. 得到配速表并写进 `plan.example.html` 第三章（近似，见 docs/09）
 5. 跑脚本演示：`python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run`

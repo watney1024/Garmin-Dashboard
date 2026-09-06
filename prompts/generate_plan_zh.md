@@ -7,7 +7,7 @@
 [生成计划] 今天是 <月/日>。请为跑者生成/再生成一份训练计划（HTML 看板）：
 
 1. 读跑者档案 <RUNNER_PROFILE.yaml>，确认 A 赛、非 A 赛与 role、每周可跑日/次数/长距离日/质量日、PR 成绩（schema 见 docs/08）。
-2. 整包加载所选教练包 coaches/<档案里 coach 字段>/README_{zh,en}.md 并遵守它；若档案与教练包不适配，先说明并建议换包，得到我确认再继续。
+2. 加载所选教练 skill：读 `.agents/skills/coach-<档案 coach 字段>/SKILL.md`，再按档案语言读 `references/coach-<coach>_<lang>.md` 全文并遵守它；若档案与教练包不适配，先说明并建议换包，得到我确认再继续。
 3. 用档案 PR 求当前 VDOT（docs/09 / scripts/vdot.py），把 E/M/T/I/R 配速写进计划第三章。
 4. 从 A 赛倒推周期，铺周骨架与逐周课表（基础→质量→巅峰→taper），遵守教练包与通用安全层（docs/03/05/06）：非 A 赛按其 role 并入当周课，只有一个全力跑的 A。
 5. 把闸门与红线落到具体日期，含"峰值长距离不达标则比赛日保守起跑"的否决项。

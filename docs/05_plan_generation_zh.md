@@ -1,7 +1,8 @@
 # 05 · 计划生成：从档案 + 教练包 + VDOT 到 HTML 计划（写给 AI agent）
 
 本文件定义**生成/再生成一份训练计划**的通用流程与 HTML 输出结构。方法论的"参数"来自
-跑者档案（docs/08）与所选教练包（`coaches/<id>/`）；数值来自 VDOT（docs/09）。示例成品：
+跑者档案（docs/08）与所选教练 skill（`.agents/skills/coach-<id>/`，Agent Skills
+标准）；数值来自 VDOT（docs/09）。示例成品：
 `examples/plan.example.html`。
 
 ## 1. 何时生成/再生成
@@ -13,7 +14,9 @@
 ## 2. 生成流程（固定顺序）
 
 1. **读档案**：`runner_profile.yaml`（无档案先访谈补全，见 docs/08）。
-2. **加载教练包**：`coaches/<coach>/README_{lang}.md` 全文；不适配先建议换包并征得同意。
+2. **加载教练 skill**：先读 `.agents/skills/coach-<coach>/SKILL.md`，再按档案语言读全文
+   `references/coach-<coach>_<lang>.md`（`<coach>`=档案 coach 字段，`_`→`-`；
+   `<lang>`=档案 language）；不适配先建议换包并征得同意。
 3. **定水平与目标**：由档案 `pr` 求 VDOT（docs/09 §5）→ 得到 E/M/T/I/R 配速区间表。
    - A 赛目标：用 VDOT 等效全马/半马成绩做初值，结合耐力短板/历史做保守修正；
    - 配速永远来自**当前 VDOT**，不用目标 VDOT 反推训练配速。

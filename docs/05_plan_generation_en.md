@@ -2,7 +2,8 @@
 
 This document defines the generic flow for **generating/regenerating a training plan** and
 the HTML output structure. The methodology "parameters" come from the runner profile
-(docs/08) and the chosen coach package (`coaches/<id>/`); the numbers come from VDOT
+(docs/08) and the chosen coach skill (`.agents/skills/coach-<id>/`, Agent Skills
+standard); the numbers come from VDOT
 (docs/09). Worked output: `examples/plan.example.html`.
 
 ## 1. When to generate / regenerate
@@ -15,7 +16,9 @@ the HTML output structure. The methodology "parameters" come from the runner pro
 ## 2. Generation flow (fixed order)
 
 1. **Read the profile**: `runner_profile.yaml` (interview first if absent, see docs/08).
-2. **Load the coach package**: `coaches/<coach>/README_{lang}.md` in full; if the fit is
+2. **Load the coach skill**: read `.agents/skills/coach-<coach>/SKILL.md`, then the full
+   method `references/coach-<coach>_<lang>.md` (`<coach>` = profile's `coach`, `_`→`-`;
+   `<lang>` = profile `language`); if the fit is
    poor, propose a switch and get consent before changing.
 3. **Level & goal**: derive VDOT from the profile `pr` (docs/09 §5) → E/M/T/I/R pace bands.
    - A-race goal: start from the VDOT equivalent for the race distance, then make a

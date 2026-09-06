@@ -35,7 +35,7 @@ pr:
   10k: MM:SS
   half: H:MM:SS
   marathon: H:MM:SS
-coach: daniels_vdot            # 所选教练包 id，见 coaches/
+coach: daniels_vdot            # 所选教练 id -> .agents/skills/coach-<id>/
 strength:          # 可选
   sessions_per_week: N
   days: { Wednesday: lower, Saturday: "upper/core/calf" }
@@ -68,9 +68,10 @@ metric_baselines:  # 给黄红灯判定的基线（docs/03）
 - 成绩陈旧或来自不同训练周期 → 用最近一次 A/attempt 赛更新后再定配速。
 - 比赛后：把新成绩写入 `pr`（保留日期），触发 VDOT 更新；若 VDOT 变化 ≥1，通过周复盘流程提出计划更新。
 
-## 4. 教练包选择（详见 docs/10 / coaches/）
+## 4. 教练 skill 选择（详见 docs/10 / .agents/skills/）
 
-- `coach` 存教练包 id，**必须与 `coaches/<id>/` 目录对应**。
+- `coach` 存教练 id，**必须能映射到 `.agents/skills/coach-<id>/` 目录**（id 的 `_`→`-`），
+  如 `daniels_vdot` → `coach-daniels-vdot`。
 - 生成计划前：agent 读取所选包全文并遵守它；如档案与包明显不适配（目标距离/周次数/能力段），先向跑者解释并建议换包，得到确认才换。
 - 换包 = 重新生成计划 = 版本表新大版本。
 

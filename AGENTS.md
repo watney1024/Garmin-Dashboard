@@ -19,7 +19,7 @@ plan's version table.
 
 | Kind | Where | Who edits |
 |---|---|---|
-| **Instructions** (docs, coaches, prompts, AGENTS.md, README) | in this repo | maintainers / you follow them |
+| **Instructions** (docs, .agents/skills, prompts, AGENTS.md, README) | in this repo | maintainers / you follow them |
 | **Runtime** (runner profile, Activities.csv, inbox/, 训练日志/周报复盘, plan HTML, registry) | the runner's private workspace, NOT tracked in git | **you**, on the runner's behalf |
 
 If the repo is used as the private workspace itself, keep runtime files under `workspace/`
@@ -30,7 +30,9 @@ If the repo is used as the private workspace itself, keep runtime files under `w
 1. `docs/00_overview_{zh,en}.md` — roles, conventions, file map, "constitution" concept.
 2. `docs/08_runner_profile_{zh,en}.md` — the profile schema; read the runner's profile first.
 3. `docs/05_plan_generation_{zh,en}.md` — the plan-generation workflow.
-4. The chosen coach package under `coaches/<coach>/` — load it fully before generating a plan.
+4. The chosen coach skill under `.agents/skills/coach-<coach>/` — read its `SKILL.md`
+   then load `references/coach-<coach>_<lang>.md` in full before generating a plan
+   (coach value = profile's `coach`, `_`→`-`).
 5. `docs/09_vdot_paces_{zh,en}.md` — mapping PRs → VDOT → training paces.
 6. The rest as needed (`docs/01` MCP setup, `docs/02` data schema, `docs/03` subjective
    state & safety rules, `docs/04` summarizing past training, `docs/06` weekly review,

@@ -14,7 +14,7 @@ book titles belong to their respective owners.
 
 ## Coach methodology packages (summaries only / 教练理念包，仅概括)
 
-The packages under `coaches/` are **our own summaries and application guides** written from
+The skills under `.agents/skills/` are **our own summaries and application guides** written from
 public descriptions of well-known training methodologies. They are not reproductions of the
 source books. Where applicable the source of inspiration is credited in each package:
 

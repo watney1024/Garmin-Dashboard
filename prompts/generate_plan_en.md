@@ -10,9 +10,9 @@
 1. Read the runner profile <RUNNER_PROFILE.yaml>; confirm the A race, non-A races and
    roles, available days / runs per week / long-run day / quality days, and PRs
    (schema: docs/08).
-2. Load the chosen coach package coaches/<profile.coach>/README_{zh,en}.md in full and
-   obey it; if the profile doesn't fit the package, explain and propose a switch, continue
-   only after I confirm.
+2. Load the chosen coach skill: read .agents/skills/coach-<profile.coach>/SKILL.md, then
+   the full method references/coach-<coach>_<lang>.md (lang = profile language) and obey
+   it; if the profile doesn't fit, explain and propose a switch, continue only after I confirm.
 3. Derive the current VDOT from the profile PRs (docs/09 / scripts/vdot.py) and write the
    E/M/T/I/R paces into plan chapter 3.
 4. Count the cycle backwards from the A race; build the weekly skeleton and week-by-week
