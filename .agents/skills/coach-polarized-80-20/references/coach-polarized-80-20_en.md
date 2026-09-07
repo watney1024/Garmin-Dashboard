@@ -70,3 +70,20 @@
 Example runner, 4 runs/week: `Tue E (Z1)` · `Thu E (Z1)` · `Fri E short recovery` ·
 `Sun Long (Z1/Z2)`, and every 2–3 weeks one Tuesday becomes `T 15–20 min` or `400 m
 intervals` — the time-based split stays ≈80/20.
+
+## 9. Mandatory checks (post-generation self-check)
+
+1. **Intensity composition**: the core metric is the **time split** — low intensity
+   (Z1/Z2) ≥80%, moderate+high ≤20%; T and I never in the same week. If hard time exceeds
+   25% for two consecutive weeks → drop a quality session; never compensate by speeding up
+   E runs.
+2. **Fatigue quantification & management**: quantify fatigue via the weekly time-based
+   intensity split plus whether HR drifts high on low-intensity runs; distribution drift is
+   the fatigue/loss-of-control signal — respond by cutting quality, keeping volume, not by
+   stopping running.
+3. **Micro/macro cycles**: micro = mostly E + one quality session every 2–3 weeks; macro is
+   a volume-ramp main line (base → build → occasional quality → taper) with a recovery week
+   every 3–4 weeks.
+4. **Easy-run doctrine**: low-intensity sessions are judged by **HR and time** — full
+   sentences are the test; the VDOT E pace is only a reference floor. Pace and distance are
+   not chased.

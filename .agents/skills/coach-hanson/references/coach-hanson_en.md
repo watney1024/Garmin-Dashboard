@@ -71,3 +71,18 @@
 
 A 5-run/week runner: `Tue T 6 km` · `Wed E recovery` · `Thu E` · `Sat E short` ·
 `Sun Long 20 km (last 10 min ST)`.
+
+## 9. Mandatory checks (post-generation self-check)
+
+1. **Intensity composition**: exactly 2 SOS per week (one T or I + one long run with a
+   faster finish), everything else E/recovery; ≥48 h between SOS. Adding a third substantive
+   session is a violation — remove the addition first.
+2. **Fatigue quantification & management**: quantify cumulative fatigue via weekly volume +
+   SOS completion — legs not fully recovered is the expected state; but unilateral injury
+   signals ≥5 or a yellow light still trigger docs/03, and privately adding >30 km singles
+   to "buy endurance" is forbidden.
+3. **Micro/macro cycles**: micro = Tuesday SOS + Sunday SOS with E in between; macro =
+   build 8–10 weeks → core 10–12 weeks → 3-week taper; fatigue accumulates via frequency,
+   so there is no traditional recovery week — E runs self-regulate instead.
+4. **Easy-run doctrine**: E/recovery sessions are judged by **HR and time**; running slow
+   while fatigued is a feature, not a regression — never speed up to "not look slow".

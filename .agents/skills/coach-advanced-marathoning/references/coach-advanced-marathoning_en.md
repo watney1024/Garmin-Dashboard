@@ -75,3 +75,20 @@
 
 5–6 runs/week: `Tue LT 10 km` · `Wed Rec 8` · `Thu GA 12` · `Sat Rec/GA 10` ·
 `Sun LR 24 (incl. MP 10)`.
+
+## 9. Mandatory checks (post-generation self-check)
+
+1. **Intensity composition**: ≤2 quality sessions per week (LT and VO2 alternating) + the
+   long run (MP segments enter some, not all, long runs); every quality session is followed
+   by Rec — Rec is structure, not optional. When overloaded, cut VO2 first, then shorten MP
+   segments.
+2. **Fatigue quantification & management**: quantify fatigue via "full recovery between
+   quality sessions + MP-segment stability in the long run"; a recovery week every 3–4
+   weeks (volume down, sessions kept); yellow/injury criteria are NOT relaxed for high
+   mileage (docs/03/06).
+3. **Micro/macro cycles**: micro = Tuesday quality + Sunday long run with GA/Rec filling
+   the rest; macro = base 6–8 weeks → specific 8–10 weeks → taper 2–3 weeks; recovery week
+   every 3–4 weeks.
+4. **Easy-run doctrine**: GA/Rec are judged by **HR and time** (GA sits near the E upper
+   bound); pace is reserved for LT/VO2/MP quality segments only — E-class runs may always
+   be slower.

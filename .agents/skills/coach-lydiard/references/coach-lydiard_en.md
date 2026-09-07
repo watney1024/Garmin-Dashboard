@@ -95,3 +95,19 @@ If the example runner picked this system with 6 runs/week: base phase
 `Mon E60 · Tue E50 · Wed E60+ST · Fri E50 · Sat E40 recovery · Sun LSD 16–24`; the hill
 phase swaps Wednesday for `uphill 8×200 m`, and the sharpening phase swaps it for
 `6–8×400`.
+
+## 9. Mandatory checks (post-generation self-check)
+
+1. **Intensity composition**: verify against the current phase — base phase ≥90% low
+   intensity with **zero T/I**; hill phase 1–2 hill sessions + the rest E/LSD; grouped
+   intervals only in the sharpening phase. A phase mismatch (speed work inside base) means
+   rebuild the week.
+2. **Fatigue quantification & management**: quantify fatigue via weekend-LSD pace drift +
+   morning HR/HRV; base-phase ramps stay ≤10%; on fatigue signals retreat the whole block to
+   "HR-mode E" — this system has the cheapest retreat of all.
+3. **Micro/macro cycles**: micro = all E (base) or 1–2 hill/interval sessions (matching
+   phase) + weekend LSD; macro = base 6–8 weeks → hill 4–6 weeks → sharpening ~4 weeks →
+   taper 2–3 weeks; phases are joined by Gates A/B.
+4. **Easy-run doctrine**: the strictest of all four — base phase and LSD use **HR and time
+   only**, with no pace targets at all and no judgment by distance/speed; pace is referenced
+   against the VDOT tables only in hill/interval sessions.

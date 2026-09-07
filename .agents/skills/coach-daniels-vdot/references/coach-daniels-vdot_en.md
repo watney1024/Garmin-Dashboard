@@ -91,3 +91,17 @@ Given the profile's `runs_per_week / long_run_day / quality_days`:
 
 Example runner (VDOT≈40): `W1 Tue E5 · Thu E5 · Fri E5 recovery · Sun Long 13 (E)`;
 quality-phase week looks like: `Tue T 4×6 min · Thu E · Fri E · Sun Long 18 (E + M4)`.
+
+## 9. Mandatory checks (post-generation self-check)
+
+1. **Intensity composition**: E ≥70% of time; ≤2 Q sessions/week (an M segment inside the
+   long run counts as half a Q); R stays small, form-only. When over the cap, cut R/I
+   first, then T — never touch E or the long run.
+2. **Fatigue quantification & management**: fatigue is read from "Q-session quality + HR
+   drift on E runs"; re-test VDOT every 4–6 weeks; the day before a Q is always E/rest;
+   two consecutive weeks of failed Q → drop to a single Q that week.
+3. **Micro/macro cycles**: micro = 1–2 Q + plenty of E + long run; macro = base → quality →
+   peak → taper; a recovery week every 4 weeks (volume −20–30%, keep one short Q).
+4. **Easy-run doctrine**: E sessions are judged by **HR and time** — being slower than the
+   E pace is fine, being faster is the error; the VDOT E value is a fast-end reference
+   ceiling, not a target.

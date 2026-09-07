@@ -12,7 +12,7 @@ file. **Adding a skill requires no code changes.**
   coach-<new_id>/                             # dir name = "coach-" + id (id `_` -> `-`)
     SKILL.md                                  # frontmatter name/description + load steps
     references/
-      coach-<new_id>_zh.md                    # full method body (8 fixed sections)
+      coach-<new_id>_zh.md                    # full method body (9 fixed sections)
       coach-<new_id>_en.md
 ```
 
@@ -40,13 +40,13 @@ in full (docs/05 §2).
    The SKILL.md body states the load steps and three rules: read the full reference in the
    profile language; never invent paces (look up `data/vdot/` or use the HR/feel
    doctrine); where the generic safety layer conflicts, take the stricter rule.
-3. Put `coach-<new_id>_{zh,en}.md` under `references/`, filling the 8 fixed sections of the
+3. Put `coach-<new_id>_{zh,en}.md` under `references/`, filling the 9 fixed sections of the
    body template below.
 4. Add one row to the index in `.agents/skills/README.md` (coach id + trigger condition).
 5. If the philosophy changes the content of an HTML-plan chapter, give template/example
    snippets inside the references; never change the document structure.
 
-## Body template (8 fixed sections of references/coach-<id>_<lang>.md)
+## Body template (9 fixed sections of references/coach-<id>_<lang>.md)
 
 Every section must have content; write "（本流派不涉及 / not part of this methodology)"
 where not applicable:
@@ -61,7 +61,21 @@ where not applicable:
 ## 6. Red lines & cautions            ← may only be stricter than docs/03/06
 ## 7. Strength / auxiliary advice
 ## 8. Worked example (optional)
+## 9. Mandatory checks (post-generation self-check)
 ```
+
+### Section 9 "Mandatory checks" convention (required for every coach)
+
+Section 9 answers **four fixed items**, each written in this school's own terms; the four
+items are mandatory and keep their order:
+
+1. **Intensity composition**: the weekly share/caps per intensity band (E vs quality), and
+   what gets cut first when the cap is exceeded.
+2. **Fatigue quantification & management**: how this school quantifies fatigue (load /
+   time / pace drift / HR etc.) and when to cut back.
+3. **Micro/macro cycles**: the weekly shape and the phase structure, where recovery weeks go.
+4. **Easy-run doctrine**: E/low-intensity sessions are judged by **HR and time**, not pace
+   or distance (table paces are a reference end only).
 
 ## Quality gate (agent self-check)
 
