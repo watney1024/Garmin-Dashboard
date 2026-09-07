@@ -13,8 +13,10 @@ This repo uses **two canonical tables** under `data/vdot/` (both tidy long forma
 | `data/vdot/vdot_races.csv` | `vdot, distance_m, seconds` | **result → VDOT**: find the equivalent race time |
 | `data/vdot/vdot_paces.csv` | `vdot, intensity, distance_m, seconds` | **VDOT → training time/pace** (E/M/T/I/R × distances) |
 
-- VDOT 30–85 in integer rows; non-integer VDOT is **linearly interpolated** by
-  `scripts/vdot.py`.
+- VDOT 20–85 in integer rows; non-integer VDOT is **linearly interpolated** by
+  `scripts/vdot.py`. VDOT 20–29 is the beginner band (see `data/vdot/README.md`: R/I/T/M
+  cells follow the beginner table of Daniels' book; unprinted cells such as E are
+  formula-derived).
 - Half/marathon distances are stored in metres (`21097.5` / `42195`).
 - ⚠ **License**: the table values derive from a **GPL-3.0** export — Zac Blanco's
   *VDOT Calculator* (see `data/vdot/README.md`, `NOTICE.md`, full text

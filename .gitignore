@@ -34,3 +34,6 @@ data/garmin_workout_registry.json
 
 # ===== local session handoff (not for the public repo) =====
 HANDOFF.md
+
+# ===== locally scanned reference tables (copyrighted book content) =====
+data/vdot/*.xlsx

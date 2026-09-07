@@ -12,7 +12,8 @@
 | `data/vdot/vdot_races.csv` | `vdot, distance_m, seconds` | **成绩 → VDOT**：在标准距离列里找等效成绩 |
 | `data/vdot/vdot_paces.csv` | `vdot, intensity, distance_m, seconds` | **VDOT → 训练时间/配速**（E/M/T/I/R × 各距离） |
 
-- VDOT 30–85，整数行；非整数由 `scripts/vdot.py` 在相邻行间**线性插值**。
+- VDOT 20–85，整数行；非整数由 `scripts/vdot.py` 在相邻行间**线性插值**。VDOT 20–29 为
+  初跑者段（来源见 `data/vdot/README.md`：R/I/T/M 依丹尼尔斯初跑者表，E 等缺格由公式补齐）。
 - 半马/马拉松距离以米存（`21097.5` / `42195`）。
 - ⚠ **许可**：表数据派生自一个 **GPL-3.0 授权**的 VDOT 导出（项目名/链接待补，见
   `data/vdot/README.md` 与 `NOTICE.md`，完整文本 `data/vdot/GPL-3.0.txt`）。再分发须遵守
