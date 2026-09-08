@@ -36,6 +36,14 @@ We only re-shaped the export (wide → tidy, distances to metres, times to secon
 numeric values are unchanged. Redistribution of these files follows the GPL-3.0 terms
 (full text: `data/vdot/GPL-3.0.txt`; notes: `data/vdot/README.md`).
 
+## Book-table-derived data / 书表衍生数据
+
+`data/vdot/intensity_points.csv` and `data/vdot/session_prescriptions.csv` transcribe
+functional tables from the Chinese edition of Jack Daniels' *Daniels' Running Formula*
+(Table 5-4 "训练强度记录表" and Table 5-5 "不同分数的训练记录表"). They are factual
+points/caps tables transcribed by hand; the scanned book pages stay out of the repository.
+All trademarks and book titles belong to their respective owners.
+
 ## Examples / 示例
 
 Everything under `examples/` is **fabricated** synthetic data about a fictional runner

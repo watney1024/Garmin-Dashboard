@@ -21,6 +21,16 @@ Examples:
   python scripts/vdot.py --race-time 40:00 --distance 10k
   python scripts/vdot.py --vdot 48
   python scripts/vdot.py --5k 21:00
+
+Intensity points (Daniels book Table 5-4, data/vdot/intensity_points.csv):
+  python scripts/vdot.py --points --vdot 48 --time 48:30 --distance 10k
+  python scripts/vdot.py --points --vdot 48 --pace 4:00 --minutes 40
+
+Session construction caps (book Table 5-5, data/vdot/session_prescriptions.csv):
+  python scripts/vdot.py --session 15 --vdot 52 [--json]
+
+Validate every table against its book anchors:
+  python scripts/vdot.py --selfcheck
 """
 import argparse
 import csv
@@ -33,6 +43,8 @@ DATA_DIR = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__
                         "data", "vdot")
 PACES_CSV = os.path.join(DATA_DIR, "vdot_paces.csv")
 RACES_CSV = os.path.join(DATA_DIR, "vdot_races.csv")
+POINTS_CSV = os.path.join(DATA_DIR, "intensity_points.csv")
+SESSION_CSV = os.path.join(DATA_DIR, "session_prescriptions.csv")
 
 # --- race-distance helpers ----------------------------------------------------
 DIST = {"1500": 1500, "1mile": 1609.34, "3000": 3000, "2mile": 3218.69,
@@ -56,6 +68,75 @@ def _load_tables():
         for r in csv.DictReader(f):
             races[(int(float(r["vdot"])), float(r["distance_m"]))] = float(r["seconds"])
     return paces, races
+
+
+def _load_points():
+    """[(pct_vdot, points_per_min)] sorted, from intensity_points.csv (book Table 5-4)."""
+    if not os.path.exists(POINTS_CSV):
+        raise SystemExit(f"ERROR: missing {POINTS_CSV}. See data/vdot/README.md.")
+    rows = []
+    with open(POINTS_CSV, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            rows.append((float(r["pct_vdot"]), float(r["points_per_min"])))
+    return sorted(rows)
+
+
+def _load_sessions():
+    """List of dict rows from session_prescriptions.csv (book Table 5-5)."""
+    if not os.path.exists(SESSION_CSV):
+        raise SystemExit(f"ERROR: missing {SESSION_CSV}. See data/vdot/README.md.")
+    with open(SESSION_CSV, encoding="utf-8", newline="") as f:
+        return list(csv.DictReader(f))
+
+
+# --- Daniels intensity points (book Table 5-4) ---------------------------------
+# %VDOT of an effort = VO2(its velocity) / VDOT x 100, i.e. how much of the
+# runner's VO2max the pace consumes. Points = points_per_min(%VDOT) x minutes.
+
+def _points_rate(rows, pct):
+    """Linear interpolation over integer %VDOT rows; clamps outside the table
+    and interpolates across the book's unprinted 101-104 gap."""
+    if pct <= rows[0][0]:
+        return rows[0][1]
+    if pct >= rows[-1][0]:
+        return rows[-1][1]
+    for (p0, r0), (p1, r1) in zip(rows, rows[1:]):
+        if p0 <= pct <= p1:
+            if p1 == p0:
+                return r0
+            return r0 + (r1 - r0) * (pct - p0) / (p1 - p0)
+    return rows[-1][1]
+
+
+def _zone_label(pct):
+    """Zone name for a %VDOT, per the book's Table 5-4 brackets
+    (E 59-74 / M 75-84 / T 83-88 / 10K 89-94 / I 95-100 / R 105-120). Shared
+    edges: 83-84 is printed as both M and T -> shown as T; the table's own T
+    paces back-solve to 88.1-89.0 %VDOT, so T extends to 89 (10K's lower edge);
+    101-104 is not printed -> 'I+'."""
+    if pct < 75:
+        return "E"
+    if pct < 83:
+        return "M"
+    if pct <= 89:
+        return "T"
+    if pct <= 94:
+        return "10K"
+    if pct <= 100:
+        return "I"
+    if pct <= 104:
+        return "I+"
+    return "R"
+
+
+def points_for(points_rows, vdot, dist_m, seconds):
+    """Points earned by one effort of dist_m metres in seconds at a given VDOT."""
+    v_mmin = dist_m / (seconds / 60.0)
+    pct = _vo2(v_mmin) / float(vdot) * 100.0
+    rate = _points_rate(points_rows, pct)
+    minutes = seconds / 60.0
+    return {"pct_vdot": pct, "zone": _zone_label(pct),
+            "rate_per_min": rate, "minutes": minutes, "points": rate * minutes}
 
 
 def _pacerow(paces, vd, zone):
@@ -199,6 +280,141 @@ def _vdot_from_race(paces, races, dist_m, time_s):
     return _vdot_formula(dist_m, time_s)
 
 
+# --- CLI modes: points / session / selfcheck -----------------------------------
+
+def _resolve_effort(a, ap):
+    """Effort spec -> (dist_m, seconds). Either --time + --distance, or
+    --pace (min/km) + --minutes."""
+    if a.time is not None and a.distance:
+        dist_m = DIST.get(a.distance)
+        dist_m = float(a.distance) if dist_m is None else dist_m
+        return dist_m, float(a.time)
+    if a.pace and a.minutes:
+        sec_per_km = _parse_time(a.pace)
+        dist_m = 1000.0 * (a.minutes * 60.0) / sec_per_km
+        return dist_m, a.minutes * 60.0
+    ap.error("give an effort as --time + --distance, or --pace + --minutes")
+
+
+def _cmd_points(a, ap, points_rows, vdot, as_json):
+    dist_m, seconds = _resolve_effort(a, ap)
+    r = points_for(points_rows, vdot, dist_m, seconds)
+    effort = f"{a.distance or ''} {_fmt_time(seconds)}".strip()
+    if as_json:
+        print(json.dumps({
+            "vdot": round(vdot, 1), "effort": effort,
+            "pct_vdot": round(r["pct_vdot"], 1), "zone": r["zone"],
+            "rate_per_min": round(r["rate_per_min"], 3),
+            "minutes": round(r["minutes"], 1),
+            "points": round(r["points"], 1),
+            "table": "data/vdot/intensity_points.csv (book Table 5-4)"},
+            ensure_ascii=False, indent=2))
+        return 0
+    print(f"VDOT {vdot:.1f}  effort {effort}  (moving time)")
+    print(f"  %VDOT {r['pct_vdot']:.1f}  ({r['zone']} zone)")
+    print(f"  {r['rate_per_min']:.3f} points/min x {r['minutes']:.1f} min "
+          f"= {r['points']:.1f} points")
+    print("\nNotes: pace from MOVING time; walk breaks/stoplights inflate %VDOT - "
+          "for interval sessions prefer the planned-session point target.")
+    return 0
+
+
+def _cmd_session(a, sessions, vdot, as_json):
+    lo = max((int(r["vdot_lo"]) for r in sessions
+              if int(r["vdot_lo"]) <= vdot), default=None)
+    rows = [r for r in sessions
+            if int(r["vdot_lo"]) == lo and int(r["points"]) == a.session]
+    if not rows:
+        raise SystemExit(f"no session bracket covers VDOT {vdot}")
+    hi = int(rows[0]["vdot_hi"])
+    order = {"L": 0, "M": 1, "T": 2, "I": 3, "R": 4}
+    rows.sort(key=lambda r: (order[r["quality"]], float(r["amount"])))
+    if as_json:
+        out = {}
+        for r in rows:
+            out.setdefault(r["quality"], []).append(
+                {"presc_key": r["presc_key"], "amount": float(r["amount"])})
+        print(json.dumps({"points": a.session, "vdot_bracket": [lo, hi],
+                          "caps": out}, ensure_ascii=False, indent=2))
+        return 0
+    print(f"Book Table 5-5: a {a.session}-point session, VDOT {vdot:.0f} "
+          f"(bracket {lo}~{hi}) - max per quality:")
+    for r in rows:
+        amt = float(r["amount"])
+        key = r["presc_key"]
+        unit = "km total" if key == "km" else f"reps of {key[5:]}"
+        print(f"  {r['quality']:<2} {amt:>6g} {unit}")
+    print("\nAmounts are CAPS per quality; L/M/T(km) are total km, others are rep "
+          "counts.\nScale with current weekly volume; warm-up/cool-down E running "
+          "adds points too.")
+    return 0
+
+
+def _selfcheck():
+    """Validate every table against the book's printed anchors. Exits non-zero
+    on any failure so agents can gate commits on it."""
+    fails = []
+
+    def check(name, ok, detail=""):
+        print(f"{'PASS' if ok else 'FAIL'}  {name}"
+              + (f" - {detail}" if detail and not ok else ""))
+        if not ok:
+            fails.append(name)
+
+    paces, races = _load_tables()
+    pvd = {v for (v, _, _) in paces}
+    rvd = {v for (v, _) in races}
+    check("races/paces vdot range", pvd == rvd and min(pvd) == 20 and max(pvd) == 85)
+    check("paces zones", {z for (_, z, _) in paces} == {"E", "M", "T", "I", "R"})
+
+    pts = _load_points()
+    check("intensity_points range", all(59 <= p <= 120 for p, _ in pts))
+    check("intensity_points unique", len({p for p, _ in pts}) == len(pts))
+    rates = [r for _, r in pts]
+    check("intensity_points monotone", all(b >= a for a, b in zip(rates, rates[1:])))
+    check("intensity_points 101-104 gap",
+          not any(101 <= p <= 104 for p, _ in pts))
+    anchors = {66: 0.200, 74: 0.333, 75: 0.350, 84: 0.583, 85: 0.600, 88: 0.683,
+               92: 0.800, 100: 1.000, 105: 1.250, 120: 2.100}
+    bad = [(q, v) for q, v in anchors.items()
+           if abs(dict(pts).get(q, -1) - v) > 0.0005]
+    check("intensity_points book anchors", not bad, str(bad))
+
+    sess = _load_sessions()
+    check("session points values",
+          {int(r["points"]) for r in sess} == {10, 15, 20, 25, 30})
+    grp = {}
+    for r in sess:
+        grp.setdefault((r["points"], r["quality"], r["presc_key"]), []).append(r)
+    mono_bad = []
+    for k, rs in grp.items():
+        rs.sort(key=lambda r: int(r["vdot_lo"]))
+        amts = [float(r["amount"]) for r in rs]
+        if any(b < a for a, b in zip(amts, amts[1:])):
+            mono_bad.append(k)
+    check("session amounts monotone in vdot bracket", not mono_bad, str(mono_bad))
+    book = {("10", "51", "L", "km"): 10.4, ("10", "51", "T", "km"): 4.0,
+            ("20", "0", "T", "km"): 6.0, ("10", "0", "I", "reps_400m"): 5.0}
+    bad = []
+    for (pts_, lo, q, key), want in book.items():
+        got = [float(r["amount"]) for r in sess
+               if r["points"] == pts_ and r["vdot_lo"] == lo
+               and r["quality"] == q and r["presc_key"] == key]
+        if len(got) != 1 or abs(got[0] - want) > 1e-9:
+            bad.append((pts_, lo, q, key, got))
+    check("session book anchors", not bad, str(bad))
+
+    # functional smoke: a VDOT-50 T-pace effort must read ~T zone
+    r = points_for(pts, 50.0, 1000.0, _pace_per_km(paces, 50, "T"))
+    check("points_for T-pace zone", r["zone"] == "T", f"got {r['zone']}")
+
+    if fails:
+        print(f"\nselfcheck FAILED: {len(fails)} group(s)")
+        return 1
+    print("\nselfcheck PASSED")
+    return 0
+
+
 def cli():
     ap = argparse.ArgumentParser(
         description="VDOT calculator backed by data/vdot/*.csv "
@@ -219,7 +435,26 @@ def cli():
         ap.add_argument(flag, type=_parse_time, default=None,
                         help=f"shortcut: race time over {dist}")
     ap.add_argument("--json", action="store_true", help="machine-readable output")
+    ap.add_argument("--points", action="store_true",
+                    help="intensity-points mode: points earned by one effort "
+                         "(needs --vdot or a race result, plus --time+--distance "
+                         "or --pace+--minutes)")
+    ap.add_argument("--time", type=_parse_time, default=None,
+                    help="effort moving time, e.g. 48:30 (with --points)")
+    ap.add_argument("--pace", default=None,
+                    help="effort pace min/km, e.g. 4:00 (with --points --minutes)")
+    ap.add_argument("--minutes", type=float, default=None,
+                    help="effort moving minutes (with --points --pace)")
+    ap.add_argument("--session", type=int, default=None, choices=[10, 15, 20, 25, 30],
+                    help="session mode: max amounts per quality for an N-point "
+                         "session (book Table 5-5), needs --vdot")
+    ap.add_argument("--selfcheck", action="store_true",
+                    help="validate all data/vdot tables against book anchors; "
+                         "non-zero exit on failure")
     a = ap.parse_args()
+
+    if a.selfcheck:
+        return _selfcheck()
 
     paces, races = _load_tables()
 
@@ -240,6 +475,11 @@ def cli():
     else:
         vdot = a.vdot
         src = "given directly"
+
+    if a.session is not None:
+        return _cmd_session(a, _load_sessions(), vdot, a.json)
+    if a.points:
+        return _cmd_points(a, ap, _load_points(), vdot, a.json)
 
     zones = paces_at(paces, vdot)
     eq = {d: race_equiv(races, vdot, DIST[d]) for d in ("5k", "10k", "half", "marathon")}
