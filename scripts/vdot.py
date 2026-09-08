@@ -31,6 +31,9 @@ Session construction caps (book Table 5-5, data/vdot/session_prescriptions.csv):
 
 Validate every table against its book anchors:
   python scripts/vdot.py --selfcheck
+
+Age/sex-graded VDOT (book Tables 5-6/5-7/5-8, docs/09 §8):
+  python scripts/vdot.py --5k 23:45 --age 52 --sex F
 """
 import argparse
 import csv
@@ -45,6 +48,8 @@ PACES_CSV = os.path.join(DATA_DIR, "vdot_paces.csv")
 RACES_CSV = os.path.join(DATA_DIR, "vdot_races.csv")
 POINTS_CSV = os.path.join(DATA_DIR, "intensity_points.csv")
 SESSION_CSV = os.path.join(DATA_DIR, "session_prescriptions.csv")
+LEVELS_CSV = os.path.join(DATA_DIR, "vdot_levels.csv")
+AGE_GRADES_CSV = os.path.join(DATA_DIR, "vdot_age_grades.csv")
 
 # --- race-distance helpers ----------------------------------------------------
 DIST = {"1500": 1500, "1mile": 1609.34, "3000": 3000, "2mile": 3218.69,
@@ -87,6 +92,85 @@ def _load_sessions():
         raise SystemExit(f"ERROR: missing {SESSION_CSV}. See data/vdot/README.md.")
     with open(SESSION_CSV, encoding="utf-8", newline="") as f:
         return list(csv.DictReader(f))
+
+
+def _load_levels():
+    """{(sex, level): vdot} from vdot_levels.csv (book Table 5-6), or None."""
+    if not os.path.exists(LEVELS_CSV):
+        return None
+    lv = {}
+    with open(LEVELS_CSV, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            lv[(r["sex"].upper(), int(r["level"]))] = float(r["vdot"])
+    return lv
+
+
+def _load_age_grades():
+    """{(sex, age, level): pace_1609_s} from vdot_age_grades.csv
+    (book Tables 5-7 + 5-8), or None."""
+    if not os.path.exists(AGE_GRADES_CSV):
+        return None
+    gr = {}
+    with open(AGE_GRADES_CSV, encoding="utf-8", newline="") as f:
+        for r in csv.DictReader(f):
+            gr[(r["sex"].upper(), int(r["age"]), int(r["level"]))] = \
+                float(r["pace_1609_s"])
+    return gr
+
+
+# --- Age/sex-graded VDOT (book Tables 5-6/5-7/5-8) ------------------------------
+
+def age_adjust(races, levels, grades, vdot, age, sex):
+    """Age/sex-graded VDOT. raw VDOT -> 1.6 km equivalent time -> the (sex, age)
+    row of the grade table (higher level = faster) -> level -> base VDOT via the
+    level table. Returns {"adjusted","level","reason"}; adjusted is None when no
+    adjustment applies. Linear interpolation between levels, extrapolation at the
+    edges (levels below 1 / above 10)."""
+    if levels is None or grades is None:
+        return None
+    sex = sex.upper()
+    age_i = int(round(age))
+    if age_i < 6 or age_i > 58:
+        return {"adjusted": None, "level": None,
+                "reason": f"age {age_i} outside the 6-58 tables; no adjustment"}
+    mile = race_equiv(races, vdot, 1609.34)
+    pts = sorted((lvl, t) for (sx, ag, lvl), t in grades.items()
+                 if sx == sex and ag == age_i)
+    if len(pts) < 2:
+        return {"adjusted": None, "level": None,
+                "reason": f"grade table incomplete for {sex} age {age_i}"}
+    lv_pts = sorted((lvl, levels[(sex, lvl)]) for lvl in range(1, 11)
+                    if (sex, lvl) in levels)
+    if len(lv_pts) < 2:
+        return {"adjusted": None, "level": None,
+                "reason": "level->VDOT table incomplete"}
+    # times descend as level rises
+    level_f = None
+    if mile >= pts[0][1]:                       # slower than level 1
+        (l0, t0), (l1, t1) = pts[0], pts[1]
+        level_f = l0 - (mile - t0) / (t0 - t1) * (l1 - l0)
+    elif mile <= pts[-1][1]:                    # faster than level 10
+        (l0, t0), (l1, t1) = pts[-2], pts[-1]
+        level_f = l1 + (t1 - mile) / (t1 - t0) * (l1 - l0)
+    else:
+        for (l0, t0), (l1, t1) in zip(pts, pts[1:]):
+            if t0 >= mile >= t1:
+                level_f = l0 + (t0 - mile) / (t0 - t1) * (l1 - l0)
+                break
+    # level -> VDOT (vdot rises with level)
+    vadj = None
+    if level_f <= lv_pts[0][0]:
+        (l0, v0), (l1, v1) = lv_pts[0], lv_pts[1]
+        vadj = v0 + (level_f - l0) / (l1 - l0) * (v1 - v0)
+    elif level_f >= lv_pts[-1][0]:
+        (l0, v0), (l1, v1) = lv_pts[-2], lv_pts[-1]
+        vadj = v1 + (level_f - l1) / (l1 - l0) * (v1 - v0)
+    else:
+        for (l0, v0), (l1, v1) in zip(lv_pts, lv_pts[1:]):
+            if l0 <= level_f <= l1:
+                vadj = v0 + (level_f - l0) / (l1 - l0) * (v1 - v0)
+                break
+    return {"adjusted": vadj, "level": level_f, "reason": None}
 
 
 # --- Daniels intensity points (book Table 5-4) ---------------------------------
@@ -408,6 +492,50 @@ def _selfcheck():
     r = points_for(pts, 50.0, 1000.0, _pace_per_km(paces, 50, "T"))
     check("points_for T-pace zone", r["zone"] == "T", f"got {r['zone']}")
 
+    levels, grades = _load_levels(), _load_age_grades()
+    if levels is None or grades is None:
+        print("SKIP  age/sex tables (data gate pending: vdot_levels.csv / "
+              "vdot_age_grades.csv, docs/09 §8)")
+    else:
+        check("levels complete", len(levels) == 20 and
+              {sx for sx, _ in levels} == {"F", "M"})
+        inc_bad = [sx for sx in ("F", "M")
+                   if any(levels[(sx, l2)] <= levels[(sx, l1)]
+                          for l1, l2 in zip(range(1, 11), range(2, 11)))]
+        check("levels vdot increasing", not inc_bad, str(inc_bad))
+        via = {}
+        for sx, lvl in ((("F", 1)), (("M", 1)), (("F", 6)), (("M", 6))):
+            via[(sx, lvl)] = race_equiv(races, levels[(sx, lvl)], 1609.34)
+        bad = {k: round(v, 1) for k, v in {
+            ("F", 1): (via[("F", 1)], 529), ("M", 1): (via[("M", 1)], 481),
+            ("F", 6): (via[("F", 6)], 328), ("M", 6): (via[("M", 6)], 295),
+        }.items() if abs(v[0] - v[1]) > 3}
+        check("levels ↔ book 1.6km anchors", not bad, str(bad))
+
+        ages = {ag for (_, ag, _) in grades}
+        check("grades ages 6-58", ages == set(range(6, 59)))
+        const_bad, slow_bad = [], []
+        for sx in ("F", "M"):
+            for lvl in range(1, 11):
+                base = [grades[(sx, ag, lvl)] for ag in range(18, 39)]
+                if len(set(base)) != 1:
+                    const_bad.append((sx, lvl))
+                seq = [grades[(sx, ag, lvl)] for ag in range(39, 59)]
+                if any(b <= a for a, b in zip(seq, seq[1:])):
+                    slow_bad.append((sx, lvl))
+        check("grades 18-38 constant", not const_bad, str(const_bad))
+        check("grades 39+ slower each year", not slow_bad, str(slow_bad))
+        # book examples: 10yo F 7:18 = the level whose 18-38 F time is 5:28
+        lvl_528 = [lvl for lvl in range(1, 11)
+                   if abs(grades[("F", 30, lvl)] - 328) <= 3]
+        ok = len(lvl_528) == 1 and abs(grades[("F", 10, lvl_528[0])] - 438) <= 2 \
+             and abs(grades[("M", 30, lvl_528[0])] - 295) <= 3
+        check("grades book anchors (7:18 / 5:28 / 4:55)", ok)
+        lvl_504 = [lvl for lvl in range(1, 11)
+                   if abs(grades[("F", 30, lvl)] - 304) <= 3]
+        ok = len(lvl_504) == 1 and abs(grades[("F", 58, lvl_504[0])] - 420) <= 4
+        check("grades book anchor (58yo F 7:00 ≡ young 5:04)", ok)
+
     if fails:
         print(f"\nselfcheck FAILED: {len(fails)} group(s)")
         return 1
@@ -448,6 +576,12 @@ def cli():
     ap.add_argument("--session", type=int, default=None, choices=[10, 15, 20, 25, 30],
                     help="session mode: max amounts per quality for an N-point "
                          "session (book Table 5-5), needs --vdot")
+    ap.add_argument("--age", type=float, default=None,
+                    help="runner age (years); with --sex applies the age/sex-graded "
+                         "VDOT (docs/09 §8; needs data/vdot/vdot_levels.csv + "
+                         "vdot_age_grades.csv)")
+    ap.add_argument("--sex", default=None, choices=["F", "M", "f", "m"],
+                    help="runner sex: F | M (with --age)")
     ap.add_argument("--selfcheck", action="store_true",
                     help="validate all data/vdot tables against book anchors; "
                          "non-zero exit on failure")
@@ -481,8 +615,22 @@ def cli():
     if a.points:
         return _cmd_points(a, ap, _load_points(), vdot, a.json)
 
-    zones = paces_at(paces, vdot)
-    eq = {d: race_equiv(races, vdot, DIST[d]) for d in ("5k", "10k", "half", "marathon")}
+    adj = None
+    if a.age is not None or a.sex is not None:
+        if a.age is None or a.sex is None:
+            ap.error("--age and --sex must be given together")
+        levels, grades = _load_levels(), _load_age_grades()
+        if levels is None or grades is None:
+            raise SystemExit(
+                "ERROR: age/sex tables missing (data gate pending): "
+                "data/vdot/vdot_levels.csv, data/vdot/vdot_age_grades.csv. "
+                "See docs/09 §8.")
+        adj = age_adjust(races, levels, grades, vdot, a.age, a.sex)
+
+    # age-graded VDOT drives the prescribed paces (docs/09 §8 policy)
+    vdot_p = adj["adjusted"] if adj and adj.get("adjusted") is not None else vdot
+    zones = paces_at(paces, vdot_p)
+    eq = {d: race_equiv(races, vdot_p, DIST[d]) for d in ("5k", "10k", "half", "marathon")}
     eq = {d: v for d, v in eq.items() if v is not None}
 
     if a.json:
@@ -492,10 +640,26 @@ def cli():
                           "r400_s": v.get("r400_s")} for z, v in zones.items()},
             "equivalent": {d: _fmt_time(eq[d]) for d in eq},
             "table": "data/vdot/ (GPL-3.0-derived, see NOTICE.md)"}
+        if adj is not None:
+            out["age_grade"] = {
+                "sex": a.sex.upper(), "age": a.age,
+                "level": None if adj.get("level") is None else round(adj["level"], 2),
+                "adjusted_vdot": None if adj.get("adjusted") is None
+                                 else round(adj["adjusted"], 1),
+                "paces_based_on": ("raw" if adj.get("adjusted") is None
+                                   else "age-graded VDOT"),
+                "note": adj.get("reason")}
         print(json.dumps(out, ensure_ascii=False, indent=2))
         return 0
 
     print(f"VDOT  {vdot:.1f}  (from {src})")
+    if adj is not None:
+        if adj.get("adjusted") is None:
+            print(f"Age/sex grade: {a.sex.upper()} {a.age:g} — {adj['reason']}")
+        else:
+            print(f"Age/sex grade: {a.sex.upper()} {a.age:g} -> level "
+                  f"{adj['level']:.1f} -> age-graded VDOT {adj['adjusted']:.1f}"
+                  "  (paces below use the age-graded VDOT)")
     print("-" * 46)
     for z in ("E", "M", "T", "I", "R"):
         v = zones.get(z)
