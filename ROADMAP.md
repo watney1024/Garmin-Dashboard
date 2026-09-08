@@ -12,6 +12,11 @@
 - [x] VDOT 数据 GPL-3.0 化（`data/vdot/`，源自 Zac Blanco VDOT Calculator），配速换算统一走 `scripts/vdot.py`
 - [x] coach 必检项框架：每个 coach 包含固定第 9 节"必检项"（强度构成、疲劳量化与管理、
       大小周期、轻松跑口径），生成计划后逐项自检（见 `docs/10`）
+- [x] 5 个教练包 references 全部基于原书精读重写（中英双语同步）：
+      丹尼尔斯《Daniels' Running Formula》、Pfitzinger《Advanced Marathoning》（你可以跑得更快）、
+      Lydiard《Healthy Intelligent Training》、Hansons《Marathon Method》、
+      Fitzgerald《80/20 Running》；Hal Higdon《马拉松终极训练指南》作交叉验证参考。
+      每包含原书精确数据：训练类型上限、心率区间、周期时长、配速定义、疲劳管理、闸门标准。
 
 ## 近期 / Near term
 
@@ -22,15 +27,16 @@
 
 ## 中期 / Mid term
 
-- [ ] **训练强度量化（load）**：引入丹尼尔斯体系中的强度点数/负荷记录，排计划与周复盘时
+- [ ] **训练强度量化（load）**：引入丹尼尔斯体系中的强度点数/负荷记录，排计划与周复盘时 TODO: 丹尼尔斯表格
       可按负荷调整训练量与内容（涉及 `docs/02` 数据 schema、`docs/06` 周复盘）。
-- [ ] **VDOT 年龄/性别修正**：按跑者档案的年龄/性别对 VDOT 与配速做修正，使训练配速更准确
+- [ ] **VDOT 年龄/性别修正**：按跑者档案的年龄/性别对 VDOT 与配速做修正，使训练配速更准确: 丹尼尔斯表格5-8
       （`scripts/vdot.py` + `docs/09` 同步改）。
 
 ## 持续 / Ongoing
 
 - [ ] 跟踪上游 `Taxuspt/garmin_mcp`：PR #249 合并后，`docs/01` 改回官方 main 安装方式。
-- [ ] 各 coach references 持续打磨：随实际使用反馈补充示例与闸门。
+- [ ] 各 coach references 持续打磨：原书数据已落地，下一步随实际使用反馈验证配速/周期
+      的可操作性，补充边界案例（低跑量、高龄、伤病恢复期等）。
 
 ## 约定 / Conventions
 
