@@ -6,6 +6,8 @@ identity:
   alias: 示例跑者
   language: zh
   timezone: Asia/Shanghai
+  birth_year: 1985         # optional; with sex enables the age-graded VDOT (docs/09 §8)
+  sex: M                   # F | M
 
 races:
   - name: 示例体育公园 10K

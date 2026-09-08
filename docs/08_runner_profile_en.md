@@ -17,6 +17,8 @@ identity:
   alias:           # alias/handle (never a real name)
   language:        # docs language: zh | en
   timezone:        # affects week boundaries, e.g. Asia/Shanghai
+  birth_year:      # optional: birth year; with sex enables the age/sex-graded VDOT (docs/09 §8)
+  sex:             # optional: F | M
 races:
   - name:          # race name (anonymised, e.g. "示例国际马拉松")
     date: YYYY-MM-DD

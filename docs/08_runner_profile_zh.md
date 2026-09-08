@@ -14,6 +14,8 @@ identity:
   alias:           # 化名/称呼（不使用真实姓名）
   language:        # 文档语言: zh | en
   timezone:        # 影响周界定的时区，如 Asia/Shanghai
+  birth_year:      # 可选：出生年；与 sex 一起启用年龄/性别修正 VDOT（docs/09 §8）
+  sex:             # 可选：F | M
 races:
   - name:          # 赛事名（脱敏描述，如"示例国际马拉松"）
     date: YYYY-MM-DD

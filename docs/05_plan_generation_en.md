@@ -21,6 +21,9 @@ standard); the numbers come from VDOT
    `<lang>` = profile `language`); if the fit is
    poor, propose a switch and get consent before changing.
 3. **Level & goal**: derive VDOT from the profile `pr` (docs/09 §5) → E/M/T/I/R pace bands.
+   - Age/sex correction: when the profile has `identity.birth_year`+`identity.sex` and the
+     runner's age falls outside 18–38, derive the **age-graded VDOT** (docs/09 §8) and
+     prescribe from it.
    - A-race goal: start from the VDOT equivalent for the race distance, then make a
      conservative correction for endurance gaps/history;
    - Paces always come from the **current VDOT** — never from an aspirational target.

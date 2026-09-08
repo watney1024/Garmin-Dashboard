@@ -131,3 +131,26 @@ longer it lasts, the more points it earns.
 - Provenance: both tables are transcribed from the Chinese edition's Tables 5-4/5-5 (the
   local scan stays out of the repo); the simplified and weekly anchors are the book's own
   printed numbers.
+
+## 8. Age/sex correction (book Tables 5-6 / 5-7 / 5-8)
+
+- **Data** (data gate: enabled only once `--selfcheck` group B passes):
+  - `vdot_levels.csv` (`sex,level,vdot`): the Table 5-6 mapping of levels 1–10 to VDOT,
+    different per sex;
+  - `vdot_age_grades.csv` (`sex,age,level,pace_1609_s`): Tables 5-7 (ages 6–17) and 5-8
+    (ages 18–58) merged; the value is the 1.6 km time for that sex/age/level. Ages 18–38
+    are constant (the base); from 39 on, one row per year of age.
+- **Algorithm** (`--age N --sex F|M`): raw VDOT → 1.6 km equivalent time (races table) →
+  locate the level within the (sex, age) row by time (linear interpolation between levels,
+  extrapolation at the edges) → base VDOT from the level table = the **age-graded VDOT**.
+- **Pace policy (repo convention)**: when the age-graded VDOT differs from the raw one,
+  **training paces come from the age-graded VDOT**; both values are printed for reference.
+- **When to apply**: the profile has `identity.birth_year` + `identity.sex` and the
+  computed age falls outside 18–38 (6–17 use the youth table, 39–58 the masters table);
+  below 6 or above 58 there is no adjustment (stated in the output).
+- **Limits**: this is a population-statistical grading, not a personal measurement; E/recovery
+  runs remain HR/feel-first (§3); interval/repetition amount caps are looked up at the
+  age-graded VDOT. Multi-result weighting (§5 item 3 TODO) is out of scope here.
+- **Validation anchors** (selfcheck group B): 10-year-old F 1.6 km 7:18 = level 6;
+  18-year-old F 5:28 = level 6; 18-year-old M 4:55 = level 6; 58-year-old F 7:00 ≈ young-F
+  5:04; level table back-solves to 1.6 km: F L1=8:49, M L1=8:01 (±3 s).
