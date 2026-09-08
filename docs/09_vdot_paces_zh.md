@@ -5,12 +5,14 @@
 **VDOT**（Jack Daniels 体系）把一次全力以赴的成绩换算成"跑步能力指数"，再用它查**各训练
 强度的配速/时间**。来源：Jack Daniels, *Daniels' Running Formula*。
 
-本仓库使用**两张规范数据表**（位于 `data/vdot/`，均为 tidy 长表）：
+本仓库使用**四张规范数据表**（位于 `data/vdot/`，均为 tidy 长表）：
 
 | 文件 | 行格式 | 用途 |
 |---|---|---|
 | `data/vdot/vdot_races.csv` | `vdot, distance_m, seconds` | **成绩 → VDOT**：在标准距离列里找等效成绩 |
 | `data/vdot/vdot_paces.csv` | `vdot, intensity, distance_m, seconds` | **VDOT → 训练时间/配速**（E/M/T/I/R × 各距离） |
+| `data/vdot/intensity_points.csv` | `pct_vdot, points_per_min` | **强度点数**（原书表 5-4）：某 %VDOT 下每分钟得多少分，见 §7 |
+| `data/vdot/session_prescriptions.csv` | `points, vdot_lo, vdot_hi, quality, presc_key, amount` | **N 分课上限**（原书表 5-5）：一节值 N 分的课，各强度最多多少量，见 §7 |
 
 - VDOT 20–85，整数行；非整数由 `scripts/vdot.py` 在相邻行间**线性插值**。VDOT 20–29 为
   初跑者段（来源见 `data/vdot/README.md`：R/I/T/M 依丹尼尔斯初跑者表，E 等缺格由公式补齐）。
@@ -47,6 +49,13 @@ python scripts/vdot.py --race-time 1:52:30 --distance half
 # VDOT → 训练配速/时间 + 等效成绩（vdot_paces / vdot_races）
 python scripts/vdot.py --vdot 40
 python scripts/vdot.py --vdot 40 --json
+# 强度点数：某次努力按实际配速得多少分（见 §7）
+python scripts/vdot.py --points --vdot 48 --time 48:30 --distance 10k
+python scripts/vdot.py --points --vdot 48 --pace 4:00 --minutes 40
+# N 分课的各强度上限（表 5-5，见 §7）
+python scripts/vdot.py --session 15 --vdot 52
+# 校验所有表与书中锚点一致（提交/改动 data/vdot 后必跑）
+python scripts/vdot.py --selfcheck
 ```
 
 - 标准距离名：`1500 1mile 3000 2mile 5k 8k 5mile 10k 15k 10mile 20k half 25k 30k marathon`。
@@ -67,3 +76,33 @@ python scripts/vdot.py --vdot 40 --json
 - 表格数值来自第三方 GPL-3.0 导出，个别行可能与 Daniels 原书印刷表有 1–2 s 级差异；若你
   拿到可直接授权/公有领域的权威版本，替换 `data/vdot/*.csv` 即可（格式保持 tidy）。
 - agent 报告配速时注明出处（如"data/vdot 表，VDOT40"），不要声称是原书逐值。
+
+## 7. 训练强度点数（load，原书表 5-4 / 5-5）
+
+丹尼尔斯用**点数**量化训练负荷：每次奔跑的 %VDOT 越高、时间越长，得分越多。
+
+- **%VDOT 的定义**：`%VDOT = VO2(实际配速) / 当前 VDOT × 100`。VO2 由经典跑氧公式计算
+  （即 `vdot.py` 的 `_vo2`）；公式口径已验证：表内 E/M/T/I/R 配速反算分别落在
+  ≈67% / 78–84% / ≈88–89% / ≈97–99% / ≈104%+，与表 5-4 的区间一致。
+- **点数表**（`intensity_points.csv`，转录自表 5-4）：每整数 %VDOT 一档的"每分钟点数"。
+  区间归属：E 59–74、M 75–84、T 83–88（与 M 重叠处同值）、10K 区 89–94、I 95–100、
+  R 105–120。101–104 书中未印——脚本在 100↔105 间插值；<59 或 >120 截断到端点。
+- **简化锚点**（原书同节给出的心算版）：E 0.2 / M 0.4 / T 0.6 / 10K 区 0.8 / I 1.0 /
+  R 1.5 分/分钟。快速估算用锚点，**正式记录用完整表**（`--points`）。
+- **周分锚点**（原书）：初跑者 ~50 分/周起步，一两年后 ~100，大学水平 ~150，其后 200+。
+  周分随跑量一样循序渐进地上调。
+- **计算口径（周复盘用，docs/06 配套）**：
+  1. 逐活动：配速一律用**移动时长**（docs/02 陷阱）→ `--points --vdot <当前VDOT>
+     --time <移动时长> --distance <距离米数或名称>`；
+  2. 周总分 = 各活动点数之和；区间分布（E/M/T/I/R 各占多少分）一并记录；
+  3. 与计划的周分目标对比（若该教练包设了目标），写进周报复盘"趋势"节。
+- **失真警示（必读）**：红绿灯/走跑结合/坡道会抬高平均配速 → 虚高 %VDOT → 虚高点数。
+  口径：走跑结合课的 %VDOT **封顶**到计划区间上界（E 课最多记到 E 区上端）；
+  **间歇课整段平均配速无意义**——按计划的课表分数目标（`--session` 查表 5-5）记账，
+  需要精确时用 inbox CSV 逐 lap 计算质量段。点数永远让位于心率/体感与安全层（docs/03/06），
+  它只用于趋势观察与教练包内的量调节，**不得放宽任何红黄灯规则**。
+- **排课用法（表 5-5，`--session N`）**：给定目标分数与 VDOT 档，给出各强度的量上限
+  （L/M/T(km) 列为总公里数；其余 `reps_*` 为重复次数）。daniels coach 构造质量课时用它
+  定"一节课最多跑多少"，再按当前周跑量缩放。列语义与源表怪癖见 `data/vdot/README.md`。
+- 出处：两张表转录自原书中文版表 5-4/5-5（本地扫描件不入库）；简化锚点与周分锚点为
+  原书原文数字。

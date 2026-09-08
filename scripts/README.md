@@ -7,7 +7,7 @@ scripts to change behaviour. 纯标准库；通过命令行参数或环境变量
 |---|---|---|
 | `garmin_pull.py` | rebuild the 16-column master CSV + download per-activity detail CSVs through garmin-mcp | 拉数据重建主表与单次明细 |
 | `garmin_schedule.py` | create & schedule a week's run workouts to Garmin (idempotent) | 把周课表排进 Garmin 日历 |
-| `vdot.py` | race result → VDOT → training pace/times, from `data/vdot/` tables | 成绩转 VDOT 与各强度配速 |
+| `vdot.py` | race result → VDOT → training pace/times; intensity points & N-point session caps (docs/09 §7); `--selfcheck` | 成绩转 VDOT 与配速；强度点数与 N 分课上限；数据自检 |
 
 Environment variables (see `.env.example` and `docs/01_mcp_setup_zh.md`):
 `GARMIN_MCP_SRC` (required for the two Garmin scripts), `UVX_BIN`,
@@ -29,6 +29,16 @@ python scripts/garmin_schedule.py scripts/week_spec.example.json
 python scripts/vdot.py --5k 23:45
 python scripts/vdot.py --race-time 1:52:30 --distance half
 python scripts/vdot.py --vdot 40 --json
+
+# intensity points for one effort (moving time; docs/09 §7)
+python scripts/vdot.py --points --vdot 48 --time 48:30 --distance 10k
+python scripts/vdot.py --points --vdot 48 --pace 4:00 --minutes 40
+
+# per-quality caps for an N-point session (book Table 5-5)
+python scripts/vdot.py --session 15 --vdot 52
+
+# validate all data/vdot tables against book anchors
+python scripts/vdot.py --selfcheck
 ```
 
 Data schemas are documented in `docs/02_data_schema_zh.md`. The files produced

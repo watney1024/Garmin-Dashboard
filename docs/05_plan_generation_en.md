@@ -29,7 +29,9 @@ standard); the numbers come from VDOT
 5. **Weekly skeleton**: coach §3 assembles the weekly shape from the profile's
    `runs_per_week / long_run_day / quality_days`.
 6. **Fill the week-by-week schedule**: a base→build→peak→taper volume curve (coach §4 plus
-   the generic safety layer); sessions named `W<n> <weekday> <type> <key info>`.
+   the generic safety layer); sessions named `W<n> <weekday> <type> <key info>`. Points-based
+   coach packages (e.g. daniels_vdot) also set a **weekly point target**; quality-session
+   amount caps come from `vdot.py --session N` (book Table 5-5, docs/09 §7).
 7. **Add the guardrails**: coach §6 red lines + the generic safety layer (docs/03) merged
    into the "red lines & gates" chapter; the three gates land on concrete weeks/dates using
    the A race and the non-A tests.
@@ -64,7 +66,7 @@ fixed; the content is filled from the coach package + profile:**
 | 5 Volume curve | `<canvas id="vol">` weekly-volume bars + long-run line | flow §6 |
 | 6 Recovery / holiday / race-week plans | purpose of recovery weeks; frequency rules for holidays/travel; race-week taper | coach §4 + generic |
 | 7 Red lines & decision gates | generic safety layer + coach red lines; gate table (gates 1/2/3 on concrete dates) | docs/03/06 + coach §5/§6 |
-| 8 Tracking & weekly review | Monday actions, review template, plan-vs-actual + `<canvas id="trk">`, version table | docs/06 |
+| 8 Tracking & weekly review | Monday actions, review template, plan-vs-actual + `<canvas id="trk">` (points-based coaches may add a weekly-load curve), version table | docs/06 |
 | 9 Strength & auxiliary (if the profile has strength) | weekly placement and exercise floor | coach §7 + profile |
 
 Conventions:

@@ -13,7 +13,10 @@ runner's one sentence + `runner_profile.yaml` + the plan HTML.
 1. Refresh objective data (pull via MCP when available, docs/01; otherwise state the
    data-cutoff date).
 2. Match this week's activities (by activity ID), compute weekly volume / completion;
-   download any missing detail CSVs.
+   download any missing detail CSVs. If the coach package uses points (e.g. daniels_vdot),
+   compute **intensity points** per activity and the weekly total (procedure and distortion
+   handling in docs/09 §7: moving time; cap walk-break sessions, record interval sessions
+   by their planned point target).
 3. Fill the six subjective metrics into the training log for the matching W section
    (docs/03 §2; missing → "主观数据缺失", injury line first).
 4. Write the four-section review (§2 below) appended to the rolling weekly-review doc.
@@ -27,7 +30,7 @@ runner's one sentence + `runner_profile.yaml` + the plan HTML.
 ```
 ① Last week actual vs plan — session by session: done / not done / what changed (cite the
    deviation reason)
-② Three trends — weekly volume · long-run completion · E-run HR drift at same pace
+② Three trends — weekly volume · long-run completion · E-run HR drift at same pace (points-based coach packages add a 4th: weekly load · planned N vs actual M)
 ③ Risk judgement — green / yellow / red + the specific rule triggered
 ④ Next-week adjustments — which sessions changed and why
 ```
@@ -48,6 +51,8 @@ runner's one sentence + `runner_profile.yaml` + the plan HTML.
 - Bilateral soreness = fatigue, you may run; **unilateral pain = structural, the runner does
   not self-judge it** (docs/03 §3).
 - Coach red lines may only tighten; always **cite the rule** (e.g. `Yellow: left achilles 3`).
+- Intensity points (docs/09 §7) are **advisory**: they inform trend-watching and
+  within-coach volume tuning only — they trigger, and can never loosen, any yellow/red rule.
 - On conflict with the plan's chapter 10 / coach gates: take the stricter option that
   respects the safety layer.
 
