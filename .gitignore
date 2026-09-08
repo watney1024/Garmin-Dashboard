@@ -37,3 +37,6 @@ HANDOFF.md
 
 # ===== locally scanned reference tables (copyrighted book content) =====
 data/vdot/*.xlsx
+
+# ===== local ebooks (copyrighted, reference only) =====
+data/ebooks/
