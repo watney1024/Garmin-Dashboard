@@ -32,6 +32,13 @@ First-time auth (terminal, interactive: email code/password):
 # run from the garmin_mcp directory, using this clone as the uvx source
 uvx --python 3.12 --from <garmin_mcp dir> garmin-mcp-auth --is-cn
 ```
+
+> Windows note: if a terminal still says `uvx` is not found (winget's PATH change
+> doesn't reach already-open windows), add the uv directory to the current session
+> PATH first, then run the command above:
+>
+> - CMD: `set PATH=%PATH%;%LOCALAPPDATA%\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe`
+> - PowerShell: `$env:PATH += ";$env:LOCALAPPDATA\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe"`
 - Tokens live in `~/.garminconnect`, valid ~6 months; re-run auth to refresh.
 - If upstream later merges PR #249, switch back to the official release — this file /
   `NOTICE.md` will point out the check.

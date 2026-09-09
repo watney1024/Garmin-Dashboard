@@ -30,6 +30,12 @@ git checkout pr-249            # 需要 Python 3.12+（该 PR 会拉取 garminco
 # 在 garmin_mcp 目录内，用该 clone 作为 uvx 源
 uvx --python 3.12 --from <garmin_mcp 目录> garmin-mcp-auth --is-cn
 ```
+
+> Windows 提示：若新开终端仍提示找不到 `uvx`（winget 的 PATH 写入未对旧窗口生效），
+> 先手动把 uv 所在目录加进当前会话 PATH，再执行上面的命令：
+>
+> - CMD：`set PATH=%PATH%;%LOCALAPPDATA%\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe`
+> - PowerShell：`$env:PATH += ";$env:LOCALAPPDATA\Microsoft\WinGet\Packages\astral-sh.uv_Microsoft.Winget.Source_8wekyb3d8bbwe"`
 - token 存 `~/.garminconnect`，约 6 个月有效，到期重跑一次即可。
 - 上游若后续合并了 PR #249，可切回官方 release；本文件/`NOTICE.md` 会提示检查。
 
