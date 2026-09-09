@@ -148,7 +148,7 @@ def main():
               "(see docs/01_mcp_setup_zh.md).", file=sys.stderr)
         sys.exit(2)
     uvx = args.uvx or os.environ.get("UVX_BIN") or shutil.which("uvx") or "uvx"
-    pyver = args.python or os.environ.get("GARMIN_MCP_PYTHON") or "3.12"
+    pyver = args.pyver or os.environ.get("GARMIN_MCP_PYTHON") or "3.12"
     data_dir = args.data_dir or os.environ.get("GARMIN_DATA_DIR") or os.path.join(
         os.getcwd(), "data")
     os.makedirs(data_dir, exist_ok=True)
