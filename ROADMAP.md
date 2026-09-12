@@ -21,6 +21,9 @@
       （`data/vdot/intensity_points.csv`、`session_prescriptions.csv`）；`vdot.py --points /
       --session / --selfcheck`；排计划与周复盘接入（docs/05/06/09 §7）。load 为建议性指标：
       只做趋势与量调节，不触发、不放宽任何红黄灯。
+- [x] 计划 HTML 规格升级为**十章结构**（第十章＝执行追踪与每周复盘＝"宪法"），自包含、
+      零外链、数据卡 + 周历格 + 色块行文；`examples/plan.example.html` 按新形态重制，
+      `docs/05` §4/§5 同步。
 
 ## 近期 / Near term
 
@@ -28,6 +31,9 @@
       全马成绩权重更高），其余成绩作交叉验证；规则写入 `docs/09` 与 `scripts/vdot.py`。
 - [ ] **真实设备冒烟**：在真实 Garmin 环境跑通 `garmin_pull.py` / `garmin_schedule.py`
       （`GARMIN_MCP_SRC`，CN 网络用 `Taxuspt/garmin_mcp` PR #249 分支，见 `docs/01`）。
+- [ ] **低跑量 vs 教练包量上限的冲突**：周量 <64 km 时，丹尼尔斯原书的 L ≤30%／T ≤10%／
+      I ≤8%（教练包 §2/§9）与"以全马为目标"无法同时成立。需要一个正式口径（提高周量 /
+      换目标距离 / 明确"低跑量改编"并在计划第十章留痕），目前示例计划采用的是第三条。
 
 ## 中期 / Mid term
 

@@ -30,7 +30,7 @@ and generates / maintains a personalized HTML training-plan dashboard.
 
 ## Quickstart / 快速开始
 
-1. Fork 这份仓库，把它变成你自己的私有工作区（见 README「Make it yours」）。
+1. Fork 这份仓库，把它变成你自己的私有工作区（真实档案与数据放 gitignored 的 `workspace/`）。
 2. 填 `runner_profile`（参考 `examples/runner_profile.example.yaml` 与 `docs/08`）。
 3. 让一个 AI agent 打开 `AGENTS.md` 开始干活——它能自己完成其余步骤。
 4. 人类每周只需要说一句话（模板见 `docs/03`）。

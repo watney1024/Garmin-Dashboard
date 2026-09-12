@@ -40,8 +40,12 @@ If the repo is used as the private workspace itself, keep runtime files under `w
 
 ## Golden rules / 铁律
 
-- **The plan's Chapter 10 is the "constitution"** for that runner's plan: where it and these
-  docs disagree, the plan chapter 10 wins. 计划的第十章是"宪法"。
+- **The plan's Chapter 10 (tracking & weekly review) is the "constitution"** for that
+  runner's plan: where it and these docs disagree, the plan chapter 10 wins. 计划的第十章
+  （执行追踪与每周复盘）是"宪法"。
+- **Plans are self-contained** — inline CSS/JS, two canvases (`vol`/`trk`), no CDN or
+  external assets; deviations from coach caps must be logged in chapter 10's
+  known-deviations table (no silent drift). 计划必须自包含、偏离必须留痕。
 - **Any plan edit appends a `vN` row** to the version table — increment, never skip.
  改计划必追加版本行 vN。
 - **Safety rules cannot be relaxed.** 通用安全层（主观 6 项、伤病分级单侧 ≥5=红、RHR+8

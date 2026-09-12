@@ -32,9 +32,11 @@ standard); the numbers come from VDOT
 5. **Weekly skeleton**: coach §3 assembles the weekly shape from the profile's
    `runs_per_week / long_run_day / quality_days`.
 6. **Fill the week-by-week schedule**: a base→build→peak→taper volume curve (coach §4 plus
-   the generic safety layer); sessions named `W<n> <weekday> <type> <key info>`. Points-based
-   coach packages (e.g. daniels_vdot) also set a **weekly point target**; quality-session
-   amount caps come from `vdot.py --session N` (book Table 5-5, docs/09 §7).
+   the generic safety layer); sessions named `W<n> <weekday> <type> <key info>`. Emit the
+   schedule as a **calendar** (grouped by phase, one row per week, all seven Mon–Sun columns,
+   rest days shown). Points-based coach packages (e.g. daniels_vdot) also set a **weekly point
+   target**; quality-session amount caps come from `vdot.py --session N` (book Table 5-5,
+   docs/09 §7).
 7. **Add the guardrails**: coach §6 red lines + the generic safety layer (docs/03) merged
    into the "red lines & gates" chapter; the three gates land on concrete weeks/dates using
    the A race and the non-A tests.
@@ -56,30 +58,43 @@ standard); the numbers come from VDOT
 
 ## 4. HTML output structure (the "dashboard" slots)
 
-Each plan is a self-contained HTML file (inline CSS + two `<canvas>`). **Chapter slots are
-fixed; the content is filled from the coach package + profile:**
+Each plan is a **self-contained HTML file**: inline `<style>` + inline `<script>`, exactly two
+`<canvas>` (`id="vol"` / `id="trk"`), and **no external dependencies whatsoever** (no CDN, no
+web fonts, no external scripts/stylesheets — the plan must open offline and print directly).
+Charts are drawn on plain canvas.
+**Chapter slots are fixed; the content is filled from the coach package + profile:**
 
 | chapter | content | data source |
 |---|---|---|
-| header | runner alias, A race & goal, VDOT, coach package, plan length | profile / VDOT / coach |
-| 1 Goals & calendar | the A/attempt/training races with roles; how non-A races are run | profile `races` |
-| 2 Weekly skeleton & phases | the 7-day role map, base/build/peak/taper phases | coach §3/§4 |
-| 3 Intensity system & paces | zone table: zone / pace / HR use / typical session; paces from the data/vdot tables | docs/09 + coach §2 |
-| 4 Week-by-week schedule | `week｜dates｜each day｜weekly volume`; non-A-race & recovery weeks flagged | flow §6 |
-| 5 Volume curve | `<canvas id="vol">` weekly-volume bars + long-run line | flow §6 |
-| 6 Recovery / holiday / race-week plans | purpose of recovery weeks; frequency rules for holidays/travel; race-week taper | coach §4 + generic |
-| 7 Red lines & decision gates | generic safety layer + coach red lines; gate table (gates 1/2/3 on concrete dates) | docs/03/06 + coach §5/§6 |
-| 8 Tracking & weekly review | Monday actions, review template, plan-vs-actual + `<canvas id="trk">` (points-based coaches may add a weekly-load curve), version table | docs/06 |
-| 9 Strength & auxiliary (if the profile has strength) | weekly placement and exercise floor | coach §7 + profile |
+| header | five stat cards (weeks to race / cycle volume / peak week / longest run / quality-session frequency) + one-line lede (dates, goal pace, weekly skeleton, coach package, VDOT, version) | profile / VDOT / coach |
+| 1 Weekly skeleton | 7-day `weekgrid` (role + intensity colour per day) + why the strength/key days sit where they do | coach §3 |
+| 2 How the key session is run | the session this runner is most likely to get wrong, in full ("Q→A→why" block `.ans` + a standard-execution table) | coach §2 + profile |
+| 3 Working with others / constraints | external coach sessions, run clubs, strength days, cross-training (climbing, cycling…) and how they yield to running | profile `constraints`/`strength` |
+| 4 Cycle structure & volume curve | phase table (phase / weeks / dates / volume / core task) + `<canvas id="vol">`: stacked bars = weekly volume (race stacked on top) + line = that week's long run; legend via `.lg` | coach §4 |
+| 5 Week-by-week schedule | **calendar form**: grouped by phase, one row per week, columns fixed as `week ｜ Mon…Sun (all 7 days) ｜ total`; each cell starts with the date then that day's content, **rest days shown as "休息"/rest**; the total column counts running distance only | flow §6 |
+| 6 Recovery weeks & holiday plans | what the recovery week is for (and why that week); holiday/travel triage order; race-week taper | coach §4 + generic |
+| 7 Paces & HR zones | zone table (zone / pace / HR use / where used) + "how this session is run" doctrine + age-grading status statement | docs/09 + coach §2 |
+| 8 Strength & auxiliary | weekly placement, exercise floor, spacing from runs, periodisation; auxiliary sessions (strides etc.) | coach §7 + profile |
+| 9 Red lines & decision gates | generic safety layer + coach red lines; `.gates` cards (gates 1/2/3 on concrete dates with thresholds) | docs/03/06 + coach §5/§6 |
+| 10 Tracking & weekly review (**the constitution**) | collaboration protocol, **known-deviations table** (where the plan departs from docs/coach + re-check condition), plan-vs-actual table + `<canvas id="trk">`, version table | docs/06 |
+
+Layout elements (class names per `examples/plan.example.html`): `.cards/.card` stat cards,
+`.weekgrid/.wday` week grid, `.tw` horizontally scrolling table shell, five callout styles
+`.note/.warn/.key/.ok/.ans`, `.ask` collaboration items, `.phase` phase headings,
+`.gates/.gate` gate cards, `.chart` chart container, `.foot` footer.
 
 Conventions:
+- **Chapters 2 and 3 are named per runner** (replace with this runner's key session / real
+  constraints; a runner with no external coach may merge them). All other slots are fixed.
 - For naming, charts, and the review protocol, **follow `examples/plan.example.html` as the
-  structural reference** (copy its skeleton, then fill in content).
-- `版本记录` (version table) sits at the end: every change appends a `vN` row (what
-  changed + why), incrementing without gaps.
-- The plan's tracking chapter (or last chapter) acts as that runner's "constitution": when
-  it and the docs disagree, the plan chapter wins (this sentence is written into the plan
-  at generation time).
+  structural reference** (copy its skeleton and CSS variables, then fill in content).
+- **Chapter 10 (tracking & weekly review) is that runner's "constitution"**: when it and the
+  docs disagree, the plan chapter wins (write that sentence into the plan at generation time).
+- The version table sits at the end of chapter 10: every change appends a `vN` row (what
+  changed + why + trigger), incrementing without gaps.
+- If the plan **deliberately deviates** from a coach cap (e.g. long-run share at low volume),
+  it must be logged in chapter 10's known-deviations table with the reason and the re-check
+  condition — **deviations must leave a trace, never silent**.
 
 ## 5. Self-check before delivery
 
@@ -87,12 +102,25 @@ Conventions:
       no invented numbers.
 - [ ] The weekly skeleton matches the profile: session count, long-run day, quality days.
 - [ ] The volume curve obeys the coach and the generic safety layer (increase %, single-run
-      share, recovery weeks).
+      share, recovery weeks); recovery-week rebound and race weeks are excluded from the
+      increase comparison, and that rule is stated in the plan.
 - [ ] Exactly one A race; non-A races do not threaten it (folded into that week's long run
       or a separate cut-back week).
 - [ ] Gates/red lines state both trigger and action, and include a veto such as
       "conservative start on race day".
 - [ ] The version table records this generation's basis.
+- [ ] **Self-contained**: no external references at all (CDN/fonts/images), exactly two
+      canvases (`vol`/`trk`), no BOM.
+- [ ] **All chapters present**: 1–10 in place; chapter 10 carries the "this file is the
+      constitution" sentence and the known-deviations table.
+- [ ] **The weekly table is a full calendar**: one row per week, all seven Mon–Sun columns
+      present, **rest days shown as well** (never list only the days with sessions), each
+      cell dated.
+- [ ] **Numbers agree**: the `#vol` volume array == the schedule table's total column; the
+      `#trk` plan array matches it and the actual array is the same length and initially
+      empty.
+- [ ] Any deliberate deviation from a coach cap is traced in chapter 10's
+      known-deviations table (reason + re-check condition).
 
 ## 6. Don't, when generating
 
