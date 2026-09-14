@@ -131,3 +131,14 @@ workspace (put them under `workspace/`, which is gitignored) — never in git hi
    rest/observation).
 8. The master table is the "should-have list": for weekly completion analysis treat the
    master as truth; per-session detail is only for reconstructing execution.
+9. **Strength-day treadmill warm-ups carry no distance**: treadmill mode **has no distance
+   field**, so the warm-up never lands in Garmin as a run (you only get a "strength" record
+   with an empty `距离km`).
+   - **Consequence**: Garmin's weekly volume **systematically under-counts** this fixed amount
+     (2 km × 2/week ≈ **4 km** in this case).
+   - **Doctrine**: the figure can only come from the runner **verbally** and is an
+     **estimate, not a measurement**. Mark it "verbal estimate" in the plan/log and never feed
+     it into anything precise (VDOT back-calculation, pace statistics, HR-drift comparison).
+   - **Review**: list the verbal amount on its **own row** when computing weekly completion
+     instead of folding it into the Garmin sum — otherwise the two sides of "plan vs actual"
+     use different bases.

@@ -56,9 +56,9 @@ runner's one sentence + `runner_profile.yaml` + the plan HTML.
 - On conflict with the plan's chapter 10 / coach gates: take the stricter option that
   respects the safety layer.
 
-## 4. Gate-progress table
+## 4. Gate- and milestone-progress tables
 
-The gates defined in the plan's chapter 7 land on concrete dates; fill them in during the
+The gates defined in the plan's **chapter 9** land on concrete dates; fill them in during the
 review:
 
 | gate | date/week | content | threshold | actual | verdict |
@@ -70,6 +70,20 @@ review:
 **Gate 3 (peak long run) = one-vote veto**: however fast the test race was, an unmet peak
 long run means a conservative race-day start. If the A race has no matching test, the
 coach package/profile generate an equivalent gate.
+
+### Milestone progress
+
+The plan's milestones (**chapter 4**; achievement markers, kept separate from gates —
+defined in docs/05 §4) are checked on the same cadence:
+
+| # | milestone | target week/date | criterion | achieved |
+|---|---|---|---|---|
+| M1 | ... | ... | see plan | pending |
+
+**The key difference from gates**: a triggered gate changes the plan; a **missed milestone
+is recorded only** and never changes the plan by itself. Only after an explicit discussion
+in the review may an item be reclassified as a gate (e.g. the same one watched for two
+weeks running).
 
 ## 5. Plan-change mechanics (after yellow/red or a gate result)
 

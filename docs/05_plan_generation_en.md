@@ -40,8 +40,13 @@ standard); the numbers come from VDOT
 7. **Add the guardrails**: coach §6 red lines + the generic safety layer (docs/03) merged
    into the "red lines & gates" chapter; the three gates land on concrete weeks/dates using
    the A race and the non-A tests.
-8. **Produce the HTML** (structure in §4); the version table records `v1` and its basis.
-9. **Self-check** (§5) before delivery.
+8. **Add milestones**: put a **milestone table** inside chapter 4 (cycle structure), see §4.
+   A milestone is an **achievement marker**, unlike a gate, which is a **decision point** — a gate
+   result may change the plan, whereas a missed milestone is **recorded only and never changes the
+   plan by itself**. Each milestone needs a target week/date and a criterion **directly verifiable
+   from the data**; the lower the starting volume, the more **front-loaded** the milestones must be.
+9. **Produce the HTML** (structure in §4); the version table records `v1` and its basis.
+10. **Self-check** (§5) before delivery.
 
 ## 3. Training doctrine (deciding "how a session is run"; every coach must comply)
 
@@ -70,7 +75,7 @@ Charts are drawn on plain canvas.
 | 1 Weekly skeleton | 7-day `weekgrid` (role + intensity colour per day) + why the strength/key days sit where they do | coach §3 |
 | 2 How the key session is run | the session this runner is most likely to get wrong, in full ("Q→A→why" block `.ans` + a standard-execution table) | coach §2 + profile |
 | 3 Working with others / constraints | external coach sessions, run clubs, strength days, cross-training (climbing, cycling…) and how they yield to running | profile `constraints`/`strength` |
-| 4 Cycle structure & volume curve | phase table (phase / weeks / dates / volume / core task) + `<canvas id="vol">`: stacked bars = weekly volume (race stacked on top) + line = that week's long run; legend via `.lg` | coach §4 |
+| 4 Cycle structure & volume curve | phase table (phase / weeks / dates / volume / core task) + **milestone table** (id / name / target week & date / verifiable criterion / achieved column) + `<canvas id="vol">`: stacked bars = weekly volume (race stacked on top) + line = that week's long run; legend via `.lg` | coach §4 + profile |
 | 5 Week-by-week schedule | **calendar form**: grouped by phase, one row per week, columns fixed as `week ｜ Mon…Sun (all 7 days) ｜ total`; each cell starts with the date then that day's content, **rest days shown as "休息"/rest**; the total column counts running distance only | flow §6 |
 | 6 Recovery weeks & holiday plans | what the recovery week is for (and why that week); holiday/travel triage order; race-week taper | coach §4 + generic |
 | 7 Paces & HR zones | zone table (zone / pace / HR use / where used) + "how this session is run" doctrine + age-grading status statement | docs/09 + coach §2 |
@@ -92,6 +97,10 @@ Conventions:
   docs disagree, the plan chapter wins (write that sentence into the plan at generation time).
 - The version table sits at the end of chapter 10: every change appends a `vN` row (what
   changed + why + trigger), incrementing without gaps.
+- **A gate is not a milestone**: a gate is a **decision point** (its outcome may change the plan,
+  see chapter 9); a milestone is an **achievement marker** (missed = recorded only, never an automatic
+  plan change, see chapter 4). They do not substitute for each other: gates are few and heavy,
+  milestones are front-loaded.
 - If the plan **deliberately deviates** from a coach cap (e.g. long-run share at low volume),
   it must be logged in chapter 10's known-deviations table with the reason and the re-check
   condition — **deviations must leave a trace, never silent**.
@@ -119,6 +128,9 @@ Conventions:
 - [ ] **Numbers agree**: the `#vol` volume array == the schedule table's total column; the
       `#trk` plan array matches it and the actual array is the same length and initially
       empty.
+- [ ] **The milestone table is present**: every entry has a target week/date and a criterion
+      **verifiable from the data** (no "feels stronger" style entries); and milestones are kept
+      separate from gates — a milestone must never read as a condition that changes the plan.
 - [ ] Any deliberate deviation from a coach cap is traced in chapter 10's
       known-deviations table (reason + re-check condition).
 
@@ -130,3 +142,8 @@ Conventions:
 - Don't write hard numbers like "week X is always Y km" that conflict with the coach or
   profile.
 - Don't leak more identifiable detail than the runner's alias allows.
+- Don't write **milestones as gates** (a missed milestone must not auto-change the plan); don't set
+  milestones that cannot be verified from data (e.g. "better form").
+- Don't make every milestone a performance number — a runner starting from a low base needs
+  **consistency / health** milestones too (e.g. "3 straight weeks at ≥90% completion", "weekly
+  average resting HR does not rise"), otherwise the first weeks show nothing achieved.
