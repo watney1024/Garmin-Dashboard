@@ -23,6 +23,19 @@
 `SKILL.md` 负责精确触发与加载指引。**内容均为"概括 + 应用指南"，非原书复制（版权声明在
 各 references 文件头）**。
 
+## 索引 B · 能力技能 / index B - capability skills
+
+> 与上面的教练包**不同**：能力技能不提供训练方法论、**不经 `profile.coach` 选择**，
+> 而是在对应场景出现时加载（把某件事做对）。
+
+| 技能目录 | 何时加载 |
+|---|---|
+| `.agents/skills/track-workout/` | 要建/改**操场（跑道）间歇课**、把间歇课排进 Garmin，或要解析历史操场课时 |
+
+`track-workout` 的核心机制：步骤结束条件设为 `lap.button` ⇒ **每次按键记一个标称 400 m，
+与跑道实际圈长解耦**。写法与脚本见其 `SKILL.md`、`references/track-workout_{zh,en}.md`，
+以及 `docs/02` §3b 与 `scripts/garmin_track_workout.py`。
+
 ## 加载规则 / loading rules
 
 1. 读 `runner_profile.yaml` 的 `coach` → 定位对应 skill 目录（见上表）。

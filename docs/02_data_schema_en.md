@@ -96,6 +96,55 @@ Fields:
 - `minutes` optional; default `round(distance_km × pace_min_km)` (30 when no distance)
 - `hr_min`/`hr_max`: HR band (default 120/150)
 
+
+### 3b. Track (interval) session spec JSON (`scripts/track_spec*.json`)
+
+**Why a separate format**: ordinary run workouts measure by GPS/time, but a real
+track lap is **not exactly 400 m**, so "2 laps = 800 m" drifts from reality.
+Garmin's answer is the **lap button**: set a step's end condition to `lap.button`,
+and **each press is recorded as a nominal distance**. The runner's only job is
+"press once per 400 m, and once more when the rest is over"; analysis then
+compares **lap times only, never GPS distance** (§6 pitfalls 2/9).
+
+`scripts/garmin_track_workout.py` turns the plain-language prescription below
+into a structured Garmin workout and schedules it:
+
+```json
+{ "name": "W2 Thu Track 6x1.2k",
+  "date": "2027-08-05",
+  "lap_meters": 400,             // nominal distance represented by one lap press
+  "rest_style": "rest",          // rest = complete rest (standing) | recovery = slow jog
+  "warmup":    {"laps": 5, "hr_min": 128, "hr_max": 150},   // 5 x 400m = 2 km
+  "pre_rest_min": 6,
+  "sets": 6, "laps_per_set": 3,  // 6 sets x 3 x 400m = 7.2 km (3 lap presses per set)
+  "set_rest_min": 3,
+  "cooldown":  {"laps": 2}       // optional
+}
+```
+
+Emitted structure (identical to a hand-built "track run" workout):
+
+```
+repeat 5x  [ warmup - lap.button ]
+rest 6 min
+repeat 6x  [ interval - lap.button x3 , rest 3 min ]
+```
+
+| field | required | meaning |
+|---|---|---|
+| `name` | yes | workout name, and the registry idempotency key |
+| `date` | no | schedules it that day; `--date` overrides |
+| `lap_meters` | no | default 400; used for the generated descriptions/summary only |
+| `rest_style` | no | default `rest` (**standing still**). Write `recovery` only if the rest is a jog |
+| `warmup.laps` / `cooldown.laps` | no | how many lap-press laps to warm up / cool down |
+| `warmup.hr_min/hr_max` | no | warm-up HR range (custom HR target) |
+| `pre_rest_min` / `set_rest_min` | no | pre / inter-set rest in minutes |
+| `sets` / `laps_per_set` | no | number of sets and laps per set |
+
+**Note**: `week_spec` + `garmin_schedule.py` can only express continuous runs —
+they cannot express interval structure. Interval sessions must go through this
+track spec. Both share the same registry (idempotent by workout name).
+
 ## 4. Workout registry `garmin_workout_registry.json`
 
 `scripts/garmin_schedule.py`'s idempotency cache: workout name → Garmin workout id.

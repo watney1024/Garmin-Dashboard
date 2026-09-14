@@ -63,15 +63,27 @@ python scripts/garmin_pull.py --master-only          # rebuild the master only
 python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
 ```
 
-## 3. MCP tools the pipeline depends on (agents may call them directly, or via scripts)
+## 3. MCP tools (agents may call them directly, or via the scripts)
+
+> **Note: the tool count is far larger than this list.** On the PR #249 branch, `tools/list` returns **100+ tools**, plus 5
+> `resources` (`workout://templates/*` and `workout://reference/structure` — the latter
+> carries the full workout-DTO id mapping, e.g. `endCondition` 1=lap.button / 2=time /
+> 7=iterations). The table below is what this repo **actually depends on**; **call `tools/list`
+> yourself for anything else** rather than assuming there are only a few.
 
 | tool | params (example) | purpose |
 |---|---|---|
 | `get_activities` | `{start, limit:100}` (paginate full list) | rebuild the master table |
 | `download_activity_file` | `{activity_id, format:"csv", output_dir}` | download per-session detail |
-| `create_run_workout` | `{name, run_seconds, warmup_min, cooldown_min, hr_min, hr_max}` | create a run workout |
-| `schedule_workout` | `{workout_id, calendar_date}` | schedule onto a date |
 | `set_activity_name` | `{activity_id, name}` | batch-rename Garmin titles (title governance) |
+| `create_run_workout` | `{name, run_seconds, warmup_min, cooldown_min, hr_min, hr_max}` | create a **continuous** run workout |
+| `upload_workout` | `{workout_data}` | create a workout of **any structure** (intervals, lap-button steps; DTO see `workout://reference/structure`) |
+| `get_workouts` / `get_workout_by_id` | `{}` / `{workout_id}` | list the library / read one workout's structure |
+| `schedule_workout` | `{workout_id, calendar_date}` | schedule onto a date |
+| `unschedule_workout` | `{scheduled_workout_id}` | remove from the calendar (**use `scheduled_workout_id`, not `workout_id`**) |
+| `delete_workout` | `{workout_id}` | delete a workout; its calendar entry disappears with it |
+| `get_scheduled_workouts` | `{start_date, end_date}` | read the calendar |
+| `get_rhr_day` / `get_sleep_summary` / `get_body_composition` / `get_user_profile` / `get_lactate_threshold` | `{date}` / `{}` | baselines: resting HR · sleep · weight · profile · lactate threshold (for the profile and the safety layer) |
 
 If you configure MCP in a desktop agent (Claude Desktop / CodeBuddy, …), point that
 server at the same garmin-mcp source (pr-249 branch for CN) with `GARMIN_IS_CN=true`; the

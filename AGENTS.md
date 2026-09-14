@@ -75,6 +75,10 @@ Read the plan's current week and report it back to the runner.
 ### D. Push workouts to watch — prompt `prompts/schedule_to_watch_zh.md`
 Create & schedule the plan's running sessions to Garmin for the week (or run
 `scripts/garmin_schedule.py`); never schedule session kinds the profile/plan excludes.
+**Track/interval sessions** cannot be expressed by that spec — build them with
+`scripts/garmin_track_workout.py` (lap-button steps: each press = a nominal 400 m, so the
+watch distance is decoupled from the real lap). Load `.agents/skills/track-workout/`.
+操场/间歇课走这条路，别用连续跑课去近似。
 
 ## Engineering notes / 工程说明
 

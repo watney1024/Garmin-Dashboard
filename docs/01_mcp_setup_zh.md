@@ -60,15 +60,26 @@ python scripts/garmin_pull.py --master-only          # 只重建主表
 python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
 ```
 
-## 3. 用到的 MCP 工具（agent 可能直接调，或由脚本代调）
+## 3. MCP 工具（agent 可能直接调，或由脚本代调）
+
+> **注意：工具数量远超本文所列。**实测 PR #249 分支的 `tools/list` 返回 **100+ 个**工具，另有 5 个
+> `resources`（`workout://templates/*` 与 `workout://reference/structure`——后者含建课 DTO 的
+> 完整 ID 映射，如 `endCondition` 1=lap.button / 2=time / 7=iterations）。
+> 本仓库**实际依赖**的是下表；**需要什么就自己调 `tools/list` 查**，不要假设只有这几个。
 
 | 工具 | 参数（示例） | 用途 |
 |---|---|---|
 | `get_activities` | `{start, limit:100}`（分页拉全量） | 重建主表 |
 | `download_activity_file` | `{activity_id, format:"csv", output_dir}` | 下载单次明细 |
-| `create_run_workout` | `{name, run_seconds, warmup_min, cooldown_min, hr_min, hr_max}` | 建跑步课 |
-| `schedule_workout` | `{workout_id, calendar_date}` | 排到某天 |
 | `set_activity_name` | `{activity_id, name}` | 批量改 Garmin 端标题（标题治理） |
+| `create_run_workout` | `{name, run_seconds, warmup_min, cooldown_min, hr_min, hr_max}` | 建**连续**跑步课 |
+| `upload_workout` | `{workout_data}` | 建**任意结构**课（间歇、计圈键等；DTO 见 `workout://reference/structure`） |
+| `get_workouts` / `get_workout_by_id` | `{}` / `{workout_id}` | 查课库 / 读单课结构 |
+| `schedule_workout` | `{workout_id, calendar_date}` | 排到某天 |
+| `unschedule_workout` | `{scheduled_workout_id}` | 撤排（**注意用 `scheduled_workout_id`，不是 `workout_id`**） |
+| `delete_workout` | `{workout_id}` | 删课；课被删后其日历条目会自动消失 |
+| `get_scheduled_workouts` | `{start_date, end_date}` | 读日历 |
+| `get_rhr_day` / `get_sleep_summary` / `get_body_composition` / `get_user_profile` / `get_lactate_threshold` | `{date}` / `{}` | 拉基线：静息心率·睡眠·体重·档案·乳酸阈（供档案与安全层用） |
 
 若在桌面 agent（Claude Desktop/CodeBuddy 等）里配置 MCP，让该 server 指向同一 garmin_mcp
 源（CN 用 pr-249 分支）与 `GARMIN_IS_CN=true`；配置只影响该客户端，token 位置不变。

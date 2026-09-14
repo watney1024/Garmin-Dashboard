@@ -7,6 +7,7 @@ scripts to change behaviour. 纯标准库；通过命令行参数或环境变量
 |---|---|---|
 | `garmin_pull.py` | rebuild the 16-column master CSV + download per-activity detail CSVs through garmin-mcp | 拉数据重建主表与单次明细 |
 | `garmin_schedule.py` | create & schedule a week's run workouts to Garmin (idempotent) | 把周课表排进 Garmin 日历 |
+| `garmin_track_workout.py` | build & schedule a **track/interval** session with lap-button steps (watch distance decoupled from the 400 m lap) | 建并排**操场间歇课**（计圈键＝标称距离） |
 | `vdot.py` | race result → VDOT → training pace/times; intensity points & N-point session caps (docs/09 §7); `--selfcheck` | 成绩转 VDOT 与配速；强度点数与 N 分课上限；数据自检 |
 
 Environment variables (see `.env.example` and `docs/01_mcp_setup_zh.md`):
@@ -24,6 +25,10 @@ python scripts/garmin_pull.py --master-only
 # schedule week 1, preview first
 python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
 python scripts/garmin_schedule.py scripts/week_spec.example.json
+
+# track / interval session (lap-button steps), preview first
+python scripts/garmin_track_workout.py scripts/track_spec.example.json --dry-run
+python scripts/garmin_track_workout.py scripts/track_spec.example.json --print-json
 
 # VDOT lookups (data from data/vdot/; GPL-3.0-derived, see NOTICE.md)
 python scripts/vdot.py --5k 23:45

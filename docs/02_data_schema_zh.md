@@ -84,6 +84,53 @@ TYPE_CN = {
 - `minutes` 可选；缺省 `round(distance_km × pace_min_km)`（无距离时默认 30）
 - `hr_min/hr_max`：心率区间（默认 120/150）
 
+
+### 3b. 操场（间歇）课 spec JSON（`scripts/track_spec*.json`）
+
+**为什么单独一套**：普通跑步课按 GPS/时间度量，但真实跑道的单圈**并非恰好 400 m**，
+"2 圈 = 800 m" 会与实际距离持续漂移。Garmin 的解法是**计圈键**——把步骤的结束条件设为
+`lap.button`，**每次按键即记一个标称距离**。跑者只需在表上"每 400 m 按一次、休息结束再按一次"，
+复盘时**只比段内时间，不做 GPS 距离换算**（§6 第 2/9 条）。
+
+`scripts/garmin_track_workout.py` 把下面这份"人话处方"转成 Garmin 的结构化课并排期：
+
+```json
+{ "name": "W2 Thu Track 6x1.2k",
+  "date": "2027-08-05",
+  "lap_meters": 400,             // 计圈键代表的标称距离
+  "rest_style": "rest",          // rest = 完全休息（静止） | recovery = 活动恢复（慢跑）
+  "warmup":    {"laps": 5, "hr_min": 128, "hr_max": 150},   // 5 × 400m = 2 km
+  "pre_rest_min": 6,
+  "sets": 6, "laps_per_set": 3,  // 6 组 × 3 × 400m = 7.2 km（每组 3 次计圈）
+  "set_rest_min": 3,
+  "cooldown":  {"laps": 2}       // 可选
+}
+```
+
+生成的结构（与手建的"操场跑步"课一致）：
+
+```
+repeat 5×  [ warmup · lap.button ]
+rest 6 min
+repeat 6×  [ interval · lap.button ×3 , rest 3 min ]
+```
+
+字段说明：
+
+| 字段 | 必填 | 说明 |
+|---|---|---|
+| `name` | 是 | 课名，同时是 registry 幂等键 |
+| `date` | 否 | 有则排到该日；也可用 `--date` 覆盖 |
+| `lap_meters` | 否 | 默认 400；仅用于生成描述文字与摘要 |
+| `rest_style` | 否 | 默认 `rest`（**静止**）。若组间是慢跑，必须显式写 `recovery` |
+| `warmup.laps` / `cooldown.laps` | 否 | 按计圈键做几圈热身/冷身 |
+| `warmup.hr_min/hr_max` | 否 | 热身心率区间（自定义 HR 目标） |
+| `pre_rest_min` / `set_rest_min` | 否 | 前置休息 / 组间休息（分钟） |
+| `sets` / `laps_per_set` | 否 | 组数与每组圈数 |
+
+**注意**：`week_spec` + `garmin_schedule.py` **只能表达连续跑课**，无法表达间歇结构；
+间歇课必须走本节的 track spec。两者共用同一个 registry（按课名幂等）。
+
 ## 4. 已建训练 registry `garmin_workout_registry.json`
 
 `scripts/garmin_schedule.py` 的幂等缓存：课名 → Garmin workout id。
