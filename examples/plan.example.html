@@ -102,13 +102,20 @@
 
   .chart{position:relative; width:100%; height:240px; margin:8px 0 2px;}
   .chart canvas{width:100%; height:100%; display:block;}
+  .ctip{position:absolute; display:none; pointer-events:none; background:rgba(26,26,24,0.93);
+        color:#fff; font-size:12px; line-height:1.6; padding:8px 10px; border-radius:6px;
+        white-space:nowrap; z-index:5; box-shadow:0 2px 8px rgba(0,0,0,0.18);}
+  .ctip b{display:block; font-weight:500; font-size:12.5px;}
+  .ctip .d{display:block; color:#bdbab2; font-size:11px; margin-bottom:4px;}
+  .ctip span{display:flex; align-items:center; gap:6px; color:#e8e6df;}
+  .ctip i{width:8px; height:8px; border-radius:2px; display:inline-block; flex:none;}
   .lg{display:flex; flex-wrap:wrap; gap:16px; font-size:12px; color:var(--ink2); margin-bottom:6px;}
   .lg span{display:flex; align-items:center; gap:5px;}
   .sw{width:10px; height:10px; border-radius:2px; display:inline-block;}
   .swl{width:14px; height:2px; display:inline-block;}
 
   .foot{margin-top:44px; padding-top:14px; border-top:1px solid var(--line); font-size:12px; color:var(--ink3);}
-  @media print{ body{background:#fff;} .page{padding:0; max-width:none;} h2{page-break-after:avoid;} tr{page-break-inside:avoid;} }
+  @media print{ body{background:#fff;} .page{padding:0; max-width:none;} h2{page-break-after:avoid;} tr{page-break-inside:avoid;} .ctip{display:none !important;} }
   @media (max-width:780px){ .page{padding:28px 18px 48px;} .weekgrid{grid-template-columns:repeat(4,1fr);} }
 </style>
 </head>
@@ -521,6 +528,28 @@ agent 周一自动拉 Garmin → 填训练日志主观 6 项 → 出四段式复
       ctx.fillText(Math.round(step*(ticks-i))+unit,pad.l-6,y+4);
     }
   }
+  function hover(c){
+    var wrap=c.parentNode, t=null;
+    function tip(){ if(!t){ t=document.createElement('div'); t.className='ctip'; wrap.appendChild(t); } return t; }
+    function hide(){ if(t) t.style.display='none'; }
+    c.addEventListener('mousemove',function(e){
+      var g=c.__geo; if(!g){ hide(); return; }
+      var r=c.getBoundingClientRect(), x=e.clientX-r.left;
+      var i=Math.floor((x-g.pad.l)/g.step);
+      if(i<0||i>=g.n){ hide(); return; }
+      var u=(g.opt&&g.opt.unit)||'', html='<b>'+g.labels[i]+'</b>';
+      if(g.opt&&g.opt.sub&&g.opt.sub[i]) html+='<span class="d">'+g.opt.sub[i]+'</span>';
+      g.series.forEach(function(s){
+        var v=s.data[i]; if(v===null||v===undefined) return;
+        html+='<span><i style="background:'+s.color+'"></i>'+(s.name||'')+' '
+              +(+v).toFixed(1).replace(/\.0$/,'')+u+'</span>';
+      });
+      var el=tip(); el.innerHTML=html; el.style.display='block'; el.style.top='6px';
+      var ww=wrap.clientWidth||900, tw=el.offsetWidth;
+      el.style.left=Math.min(Math.max(4,x-tw/2),Math.max(4,ww-tw-4))+'px';
+    });
+    c.addEventListener('mouseleave',hide);
+  }
   function draw(sel,labels,series,opt){
     var c=document.querySelector(sel); if(!c) return;
     var dpr=window.devicePixelRatio||1, W=c.clientWidth||900, H=c.clientHeight||240;
@@ -575,22 +604,28 @@ agent 周一自动拉 Garmin → 填训练日志主观 6 项 → 出四段式复
     // x 轴标签
     ctx.fillStyle=C.tick; ctx.font='10px -apple-system,"PingFang SC",sans-serif'; ctx.textAlign='center';
     for(var k=0;k<n;k++) ctx.fillText(labels[k],pad.l+step*k+step/2,H-8);
+    c.__geo={labels:labels,series:series,opt:opt,pad:pad,step:step,n:n};
+    if(!c.__hovered){ c.__hovered=1; hover(c); }
   }
   var L16=['W1','W2','W3','W4','W5','W6','W7','W8','W9','W10','W11','W12','W13','W14','W15','W16'];
   var VOL=[23,25,28,32,26,32,31,36,38,35,38,40,45,33,28,10];
   var RACE=[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,42.2];
   var LR=[9,11,13,15,10,16,14,18,20,16,21.1,20,24,16,12,42.2];
   var ACT=[null,null,null,null,null,null,null,null,null,null,null,null,null,null,null,null];
+  /* 悬停提示的副标题：每周日期区间 */
+  var SUB =['8/2–8/8','8/9–8/15','8/16–8/22','8/23–8/29','8/30–9/5','9/6–9/12',
+            '9/13–9/19','9/20–9/26','9/27–10/3','10/4–10/10','10/11–10/17',
+            '10/18–10/24','10/25–10/31','11/1–11/7','11/8–11/14','11/15–11/21'];
   function render(){
     draw('#vol',L16,[
-      {type:'bar',data:VOL,color:C.blue},
-      {type:'bar',data:RACE,color:C.race,stackBase:VOL},
-      {type:'line',data:LR,color:C.teal}
-    ],{unit:' km'});
+      {type:'bar',data:VOL,color:C.blue,name:'周跑量'},
+      {type:'bar',data:RACE,color:C.race,stackBase:VOL,name:'比赛'},
+      {type:'line',data:LR,color:C.teal,name:'长距离'}
+    ],{unit:' km',sub:SUB});
     draw('#trk',L16,[
-      {type:'bar',data:VOL,color:C.blueSoft,barW:14},
-      {type:'bar',data:ACT,color:C.teal,barW:14}
-    ],{unit:' km'});
+      {type:'bar',data:VOL,color:C.blueSoft,barW:14,name:'计划'},
+      {type:'bar',data:ACT,color:C.teal,barW:14,name:'实际'}
+    ],{unit:' km',sub:SUB});
   }
   render();
   window.addEventListener('resize',render);

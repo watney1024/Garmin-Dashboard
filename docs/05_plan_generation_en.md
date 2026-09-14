@@ -75,7 +75,7 @@ Charts are drawn on plain canvas.
 | 1 Weekly skeleton | 7-day `weekgrid` (role + intensity colour per day) + why the strength/key days sit where they do | coach §3 |
 | 2 How the key session is run | the session this runner is most likely to get wrong, in full ("Q→A→why" block `.ans` + a standard-execution table) | coach §2 + profile |
 | 3 Working with others / constraints | external coach sessions, run clubs, strength days, cross-training (climbing, cycling…) and how they yield to running | profile `constraints`/`strength` |
-| 4 Cycle structure & volume curve | phase table (phase / weeks / dates / volume / core task) + **milestone table** (id / name / target week & date / verifiable criterion / achieved column) + `<canvas id="vol">`: stacked bars = weekly volume (race stacked on top) + line = that week's long run; legend via `.lg` | coach §4 + profile |
+| 4 Cycle structure & volume curve | phase table (phase / weeks / dates / volume / core task) + **milestone table** (id / name / target week & date / verifiable criterion / achieved column) + `<canvas id="vol">`: stacked bars = weekly volume (race stacked on top) + line = that week's long run; **must show the per-week values on mouse hover** (a self-contained `.ctip` tooltip with the week, date range and each series value); legend via `.lg` | coach §4 + profile |
 | 5 Week-by-week schedule | **calendar form**: grouped by phase, one row per week, columns fixed as `week ｜ Mon…Sun (all 7 days) ｜ total`; each cell starts with the date then that day's content, **rest days shown as "休息"/rest**; the total column counts running distance only | flow §6 |
 | 6 Recovery weeks & holiday plans | what the recovery week is for (and why that week); holiday/travel triage order; race-week taper | coach §4 + generic |
 | 7 Paces & HR zones | zone table (zone / pace / HR use / where used) + "how this session is run" doctrine + age-grading status statement | docs/09 + coach §2 |
@@ -86,7 +86,11 @@ Charts are drawn on plain canvas.
 Layout elements (class names per `examples/plan.example.html`): `.cards/.card` stat cards,
 `.weekgrid/.wday` week grid, `.tw` horizontally scrolling table shell, five callout styles
 `.note/.warn/.key/.ok/.ans`, `.ask` collaboration items, `.phase` phase headings,
-`.gates/.gate` gate cards, `.chart` chart container, `.foot` footer.
+`.gates/.gate` gate cards, `.chart` chart container, `.ctip` chart hover tooltip, `.foot` footer.
+- **Chart read-out rule**: both canvases must let you **hover to read the per-week values** — the
+  static picture only shows shape. The tooltip must be **self-contained** (plain DOM + inline CSS,
+  zero external libraries) and **hidden when printing**
+  (`@media print{ .ctip{display:none !important;} }`) so it never covers the chart.
 
 Conventions:
 - **Chapters 2 and 3 are named per runner** (replace with this runner's key session / real
@@ -128,6 +132,9 @@ Conventions:
 - [ ] **Numbers agree**: the `#vol` volume array == the schedule table's total column; the
       `#trk` plan array matches it and the actual array is the same length and initially
       empty.
+- [ ] **Charts are hoverable**: both canvases' `draw()` stores its geometry on the element and
+      binds `mousemove`/`mouseleave` (values on hover, hidden on leave); the tooltip is
+      self-contained and hidden in print.
 - [ ] **The milestone table is present**: every entry has a target week/date and a criterion
       **verifiable from the data** (no "feels stronger" style entries); and milestones are kept
       separate from gates — a milestone must never read as a condition that changes the plan.

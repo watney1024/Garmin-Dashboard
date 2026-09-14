@@ -27,12 +27,13 @@
 6. Land the gates and red lines on concrete dates, including the veto "if the peak long
    run fails, race-day starts conservative".
 7. Produce a self-contained HTML (10 chapters, chapter/naming per examples/plan.example.html;
-   no external references, charts drawn on plain canvas); chapter 10 carries the "this file
-   is the constitution" sentence and the known-deviations table; the version table gets v1
-   with its basis.
+   no external references, charts drawn on plain canvas). **Charts must show the per-week
+   values on mouse hover** (a self-contained `.ctip` tooltip, no external library, hidden when
+   not hovering). Chapter 10 carries the "this file is the constitution" sentence and the
+   known-deviations table; the version table gets v1 with its basis.
 8. In your output list the self-check: profile-consistent, no invented paces, one A,
    volume within caps, all seven days present in the weekly table, the volume array matching
-   the total column, version recorded.
+   the total column, **charts readable on hover**, version recorded.
 9. Reply in ≤400 characters: A race & goal, VDOT, weekly skeleton, peak week volume,
    1-2 things for me to watch.
 ```
