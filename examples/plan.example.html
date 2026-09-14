@@ -501,6 +501,7 @@ agent 周一自动拉 Garmin → 填训练日志主观 6 项 → 出四段式复
     var ctx=c.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0); ctx.clearRect(0,0,W,H);
     var pad={l:44,r:10,t:12,b:26};
     var iw=W-pad.l-pad.r, ih=H-pad.t-pad.b, n=labels.length;
+    var step=iw/n;
     var raw=0; series.forEach(function(s){
       s.data.forEach(function(v,i){ if(v===null||v===undefined) return;
         var t=(s.stackBase?s.stackBase[i]:0)+v; if(t>raw) raw=t; });
