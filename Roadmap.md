@@ -1,4 +1,4 @@
-# ROADMAP · 路线图
+# Roadmap · 路线图
 
 > 本文件是项目公开路线图（双语）。跑者私人待办不在这里；个人数据永远不进仓库。
 > This is the project's public roadmap (bilingual). Private runner notes stay out; personal
