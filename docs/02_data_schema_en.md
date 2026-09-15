@@ -191,3 +191,38 @@ workspace (put them under `workspace/`, which is gitignored) — never in git hi
    - **Review**: list the verbal amount on its **own row** when computing weekly completion
      instead of folding it into the Garmin sum — otherwise the two sides of "plan vs actual"
      use different bases.
+10. **A new sensor is a new ruler; with mixed sources, trust the accessory**: fields like
+    ground contact time / vertical oscillation / step length / cadence are
+    **produced by the wrist watch too** — a field being populated
+    does **not** mean the runner wore an accessory. Accessories (HR strap / running-dynamics
+    pod / power meter) and the wrist use **different scales**: measured on the same runner at
+    the same pace and HR, the two can differ by **5–10%** (both GCT and vertical oscillation).
+    - **Consequence**: **the day the accessory is first used is a break point in the curve**;
+      trending across it invents a "form change" out of nothing. Trend only **within one
+      source** (all wrist, or all accessory) and record the break date in the log/review.
+    - **Mixed sources — whose numbers win** (only needs deciding when the runner **owns an
+      accessory and the data mixes "with" and "without"**; a **watch-only** or
+      **accessory-only** runner is **unaffected** — one source throughout, a constant bias,
+      so trends still hold. Never add "low confidence" noise labels for them):
+      - **Never compare across sources**: trends, HR drift and efficiency only within one
+        source (as above);
+      - When the two conflict and you must pick, **trust the accessory** — **heart rate**
+        especially (optical wrist HR is unreliable during intervals / high intensity, i.e.
+        when HR changes fast);
+      - **Measure HR anchors (HRmax, lactate-threshold HR) with the strap**; if an existing
+        anchor came from strap-less data, treat it as **pending re-check** — never use it as
+        settled fact to set zones.
+    - **How to tell whether an accessory was worn** (don't just look for populated fields):
+      - **Accessory-only fields**: HR strap → `groundContactBalanceLeft` (GCT balance) ·
+        `avgRespirationRate` (respiration) · `avg_stance_time_percent` (stance-time
+        percentage). The wrist produces none of the three — the cheapest tell.
+      - **A paired device with `source_type=antplus` in FIT `device_info`** (carrying a
+        `serial_number`) — the **hardest evidence**, more reliable than summary fields
+        (it also catches third-party ANT+ straps).
+      - If neither is available, **ask the runner directly**: which accessory, since when,
+        and which sessions it was left off.
+    - **How to use it**: GCT balance for **unilateral** injury signals (a ≥1pp left/right gap
+      suggests asymmetry); GCT/VO for form drift in the **fatigued last third**; respiration
+      for ventilatory adaptation. Always compare **by segment (first/middle/last third)** —
+      whole-session averages are polluted by interval rest laps (see pitfall 2).
+    - Record the accessory in the profile's `devices` field (docs/08 §1).

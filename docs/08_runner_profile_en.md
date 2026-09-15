@@ -49,7 +49,20 @@ metric_baselines:  # baselines for yellow/red decisions (docs/03)
   resting_hr: 50
   weight_kg: 62.0
   sleep_h: 7.2
+devices:           # optional: extra sensors/accessories -> which advanced metrics exist (docs/02 §6.10)
+  - kind: hr_strap        # hr_strap | running_pod | power_meter
+    since: YYYY-MM-DD     # first date it appears in the data (**i.e. the curve break point**)
+    note:                 # optional: model, which sessions it was left off
 ```
+
+**About `devices`**: record **extra sensors/accessories only** — the watch itself is implied.
+It serves three purposes: ① it tells the agent **which advanced metrics exist at all**
+(HR strap → GCT balance / respiration / stance-time percentage; running pod or power meter →
+vertical oscillation / ground contact time / step length / power), so a plan must not
+reference metrics whose sensor isn't there; ② `since` records the **data break point** —
+same-named fields use **different scales** before and after the accessory, so never trend
+across it (docs/02 §6.10); ③ when an accessory is added, retired or forgotten, you ask the
+runner instead of guessing, and write it back here.
 
 ## 2. Multiple races & the A-race model
 
@@ -102,8 +115,11 @@ Rules:
 ## 6. Maintenance cadence
 
 - The runner may change things any time: race calendar (entries/cancellations/A-switch),
-   trainable days, injury constraints.
+   trainable days, injury constraints, **adding/retiring an accessory (`devices`)**.
 - After each weekly review, if a race result / PR changed → update this file and mention it
    in the review's "next-week adjustments".
+- **Log accessory changes proactively**: a new `source_type=antplus` device appears (or an
+   old one disappears) → update `devices.since` and flag that week in the log/review as the
+   **data break point** (docs/02 §6.10).
 - Versioning: the runner profile is not code; changes are explained in the weekly review
    and do not enter the plan's version table.

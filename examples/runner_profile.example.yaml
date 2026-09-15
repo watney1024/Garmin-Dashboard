@@ -56,3 +56,8 @@ metric_baselines:
   resting_hr: 50
   weight_kg: 62.0
   sleep_h: 7.2
+
+devices:                     # optional: extra sensors/accessories (docs/08 §1, docs/02 §6.10)
+  - kind: hr_strap           # hr_strap | running_pod | power_meter
+    since: 2027-01-05        # first date it appears in the data = the curve break point
+    note: "HRM-Dual；2027-02-11 那次漏戴"
