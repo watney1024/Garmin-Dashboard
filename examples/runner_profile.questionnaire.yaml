@@ -1,0 +1,140 @@
+# Garmin-Dashboard · runner profile questionnaire / 跑者档案问卷
+#
+# Fill this in and save it as workspace/runner_profile.yaml, then run:
+#     python scripts/profile_wizard.py --check workspace/runner_profile.yaml
+# 填好后另存为 workspace/runner_profile.yaml，再跑上面这条命令校验。
+#
+# Rules / 规则:
+#   · replace every <...> placeholder; leave a value out (delete the line) if it is optional
+#     （把每个 <...> 占位符换成你的答案；可选字段不需要就整行删掉）
+#   · block style only: no {flow: mappings}, no |block scalars, no tabs
+#     （只用块状写法：不要 {} 流式映射、不要 | 块标量、不要 tab 缩进）
+#   · schedule reference / 排期与判灯依据: docs/03, docs/06, docs/08
+#   · at most ONE race may have role: A （只能有一场比赛是 role: A）
+#
+# This file is generated from scripts/profile_wizard.py FIELDS — regenerate with
+#     python scripts/profile_wizard.py --emit-questionnaire
+# 本文件由 FIELDS 生成，改字段后要重新生成（--selfcheck 会检查）。
+
+identity:
+  # 问：我该怎么称呼你？（请勿填真实姓名）｜说明：只是给 agent 用的代称，会出现在计划 HTML 的标题里。
+  # Q: What should I call you? (never your real name) (example: 示例跑者)
+  alias: <alias / 称呼>
+  # 问：计划和教练文档用中文还是英文？｜说明：决定加载 .agents/skills/coach-*/references/coach-*_<lang>.md。
+  # Q: Should the plan and coach docs be Chinese or English? (example: zh)
+  language: <zh | en>
+  # 问：你的 IANA 时区是什么？｜说明：决定“周”的边界。注意 Garmin 账户时区可能与手机时区不同（同为 UTC+8 则周界一致）。
+  # Q: What is your IANA timezone? (example: Asia/Shanghai)
+  timezone: <IANA tz, e.g. Asia/Shanghai>
+  # 问：出生年份？（可留空）｜说明：与 sex 一起才会启用年龄/性别修正 VDOT（docs/09 §8）；年龄落在 18–38 则不需要修正。
+  # Q: Year of birth? (blank to skip) (example: 1985)
+  birth_year: <year>
+  # 问：生理性别 F/M？（可留空）｜说明：仅在启用年龄/性别修正时使用。
+  # Q: Sex F/M? (blank to skip) (example: M)
+  sex: <F | M>
+
+races:
+  # 可有多项 · 每个条目重复这一整块 / repeat this block for each item
+  # --- item 1 ---
+  # 问：这场比赛叫什么？（可用代称）｜说明：会出现在计划的赛事卡与闸门里。
+  # Q: What is this race called? (a nickname is fine) (example: 示例湖半程马拉松)
+  - name: <race name / 比赛名>
+    # 问：哪一天？（YYYY-MM-DD）｜说明：周期从 A 赛倒推，日期错了整套课表都要重排。
+    # Q: Which day? (YYYY-MM-DD) (example: 2027-11-21)
+    date: <YYYY-MM-DD>
+    # 问：什么距离？（marathon / half / 10k / 5k / …）｜说明：开放取值——不限于这几种，写你实际报的项目。
+    # Q: What distance? (marathon / half / 10k / 5k / …) (example: marathon)
+    distance: <marathon | half | 10k | 5k>
+    # 问：它的角色是？A＝唯一全力赛 / attempt＝认真但不全力 / training＝当训练课｜说明：一个周期内只能有 1 个 A；比赛必须标 role，三者互斥。
+    # Q: Its role? A = the one all-out race / attempt = serious but not all-out / training = a tune-up (example: A)
+    role: <A | attempt | training>
+    # 问：这场比赛有什么要提醒我的？（补给/赛道/目标；可留空）｜说明：自由文本，会进规划的判断依据。
+    # Q: Anything I should know about this race? (fuelling, course, goal; blank to skip) (example: 赛道起伏，目标 4:05)
+    note: <free text / 自由文本>
+
+weekly:
+  # 问：一周打算跑几次？｜说明：目标次数；加量时逐周往上加，不要一步到位。
+  # Q: How many runs per week? (example: 4)
+  runs_per_week: <runs per week / 每周次数>
+  # 问：哪几天跑？各是什么角色（quality/easy/long）？｜说明：不跑的天整行删掉。质量课定义由教练包给。
+  # Q: Which weekdays do you run, and with which role (quality/easy/long)? (example: Sunday: long, Thursday: easy, Tuesday: quality)
+  days:
+    Monday: <easy | quality | long>
+    Tuesday: <easy | quality | long>
+    Wednesday: <easy | quality | long>
+    Thursday: <easy | quality | long>
+    Friday: <easy | quality | long>
+    Saturday: <easy | quality | long>
+    Sunday: <easy | quality | long>
+    # 不跑/不练的天整行删掉 · delete the lines you do not use
+  # 问：长距离放在星期几？｜说明：前一天不要安排下肢大负荷（docs/03）。
+  # Q: Which weekday carries the long run? (example: Sunday)
+  long_run_day: <weekday / 星期几>
+  # 问：质量课放在哪几天？（可以多个，用逗号分隔）｜说明：必须与 weekly.days 里的 quality 角色一致。
+  # Q: Which weekdays carry quality sessions? (several allowed, comma-separated) (example: Tuesday)
+  quality_days: []
+  # 问：单次跑步最长多少分钟？（可留空）｜说明：超过教练包默认上限时，计划必须把这条偏离写进第十章。
+  # Q: Longest single run in minutes? (blank to skip) (example: 180)
+  max_run_min: <minutes / 分钟>
+
+pr:
+  # 问：最近半年内的 5K 成绩？（没有就回车跳过）｜说明：四项 PR 至少填一个才能推导 VDOT（docs/09）。
+  # Q: A 5K result from the last six months? (blank to skip) (example: 23:45)
+  5k: <MM:SS>
+  # 问：10K 成绩？（没有就回车跳过）｜说明：越接近当前体能、越近期的成绩，VDOT 越可信。
+  # Q: A 10K result? (blank to skip) (example: 49:30)
+  10k: <MM:SS>
+  # 问：半马成绩？（没有就回车跳过）｜说明：格式 H:MM:SS。
+  # Q: A half-marathon result? (blank to skip) (example: 1:52:30)
+  half: <H:MM:SS>
+  # 问：全马成绩？（没有就回车跳过）｜说明：若非全力跑的，务必在 constraints 里注明——它会决定 VDOT 是下限还是真值。
+  # Q: A marathon result? (blank to skip) (example: 3:54:04)
+  marathon: <H:MM:SS>
+
+# 问：想用哪套教练方法？｜说明：取值对应 .agents/skills/coach-<id>/（id 里的 _ 换成 -）。
+# Q: Which coaching method do you want? (example: daniels_vdot)
+coach: <coach id>
+
+strength:
+  # 问：一周做几次力量？｜说明：整块可选；填了就要把两个子字段都填全。
+  # Q: How many strength sessions per week? (example: 2)
+  sessions_per_week: <sessions per week / 每周次数>
+  # 问：力量放在哪几天？各练什么？｜说明：用块状写法，一天一行；不要写成 {周几: 内容} 那种流式映射。
+  # Q: Which weekdays, and what does each session work? (example: Wednesday: lower body (squat/RDL/lunge/calf))
+  days:
+    Monday: <what you train / 练什么>
+    Tuesday: <what you train / 练什么>
+    Wednesday: <what you train / 练什么>
+    Thursday: <what you train / 练什么>
+    Friday: <what you train / 练什么>
+    Saturday: <what you train / 练什么>
+    Sunday: <what you train / 练什么>
+    # 不跑/不练的天整行删掉 · delete the lines you do not use
+
+# 问：有什么我必须知道的？（伤病史/作息/出差/恢复偏好/跑团固定场次；没有就填 []）｜说明：可以有多条，也可以留空（[]）。这条清单会影响排课与判灯。
+# Q: Anything I must know? (injury history, schedule, travel, recovery, fixed club sessions; [] if none) (example: 早睡早起型；周末白天可安排长距离 / 曾患足底筋膜炎（已愈），日常做提踵/足底放松)
+constraints: []
+
+metric_baselines:
+  # 问：晨起静息心率的常态是多少？（取近期中位数）｜说明：黄/红灯的锚点：+8 bpm 连续 1 天＝黄，连续 2 天＝红（docs/03 §4）。
+  # Q: Your usual morning resting HR? (a recent median) (example: 50)
+  resting_hr: <bpm>
+  # 问：晨起空腹体重多少 kg？｜说明：只做趋势与异常波动判断，不是硬性指标。
+  # Q: Morning fasted weight in kg? (example: 62.0)
+  weight_kg: <kg>
+  # 问：平时一晚睡多少小时？｜说明：用近期中位数；明显低于个人常态时会降低当周强度课负荷。
+  # Q: How many hours do you usually sleep? (example: 7.2)
+  sleep_h: <hours / 小时>
+
+devices:
+  # 可有多项 · 每个条目重复这一整块 / repeat this block for each item
+  # --- item 1 ---
+  # 问：什么配件？hr_strap＝心率带 / running_pod＝跑步豆 / power_meter＝功率计｜说明：决定哪些高阶指标可用——没有对应传感器就不许在计划里引用它的指标。
+  # Q: Which accessory? hr_strap / running_pod / power_meter (example: hr_strap)
+  - kind: <hr_strap | running_pod | power_meter>
+    # 问：这个配件从哪天起出现在你的数据里？（YYYY-MM-DD）｜说明：这就是【数据断点】：同名字段的标尺变了，不可跨它比较（docs/02 §6.10）。
+    # Q: From which date does this accessory appear in your data? (YYYY-MM-DD) (example: 2027-01-05)
+    since: <YYYY-MM-DD>
+    # 问：型号、哪几次漏戴？（可留空）｜说明：漏戴的那几次是数据盲区，写下来 agent 才不会误比。
+    # Q: Model, which sessions it was left off? (blank to skip) (example: HRM-Dual；2027-02-11 那次漏戴)
+    note: <free text / 自由文本>
