@@ -5,7 +5,7 @@
   "rest_style": "rest",
   "note": "Fictional example (CC0). Schema reference: docs/02. The lap key is the 400 m unit — the watch distance is decoupled from the real track lap.",
 
-  "warmup": {"laps": 5, "hr_min": 128, "hr_max": 150},
+  "warmup": {"laps": 5},
   "pre_rest_min": 6,
   "sets": 6,
   "laps_per_set": 3,

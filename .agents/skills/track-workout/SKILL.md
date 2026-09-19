@@ -34,12 +34,13 @@ description: >-
    python scripts/garmin_track_workout.py <spec.json> --print-json  # 看生成的 DTO
    python scripts/garmin_track_workout.py <spec.json>               # 上传并排期
    ```
-   脚本按**课名**做幂等（registry 在 `GARMIN_DATA_DIR/garmin_workout_registry.json`），
-   重跑只会补排期，不会重复建课。
+   脚本按 **课名 ＋ 内容指纹** 做幂等（registry 在 `GARMIN_DATA_DIR/garmin_workout_registry.json`）。
+   `--dry-run` 会逐课打印判定：`create` / `reuse` / `replace` ＋原因，**先看差异再推**。
 
-5. **替换旧课时**：改处方（如组数或休息方式变了）**不要复用同一个课名**去覆盖——
-   `upload_workout` 只会新建。正确姿势：新名上传 → 排期 → 旧课 `delete_workout`
-   （课被删后其日历条目会自动消失，不必手动 `unschedule`）。
+5. **替换旧课由脚本自动处理**：改了处方（组数 / 休息方式 / 热身…）直接重跑即可 ——
+   脚本比对内容指纹发现不一致，自动走 **建新课 → 排新课 → 删旧课**
+   （先建后删，中途失败也不会把手表弄空；旧课被删后其日历条目自动消失，不必手动
+   `unschedule`）。**不要再靠手工换课名去规避复用** —— 那正是旧版本的坑。
 
 6. **复盘按计圈口径**：一段 = 一次按键；**只比段内时间，不做 GPS 距离→配速换算**
    （见 `references/track-workout_zh.md` 的解析规则）。
@@ -50,3 +51,5 @@ description: >-
 - 不许把 `rest_style` 留空却假定是慢跑——**静止是默认，慢跑必须显式说明**。
 - 不许用 `create_run_workout` 去"近似"间歇课（它只能建连续跑课，会丢掉所有结构）。
 - 不许在复盘里用整场平均配速评价间歇课（休息段会严重污染均值）。
+- **不许给热身步骤设心率靶**：`warmup.hr_min/hr_max` 已废弃，写了也只会被忽略并打
+  WARNING。热身期心率从静息往上爬，挂区间只会全程报下限（docs/02 §3b）。

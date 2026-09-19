@@ -114,7 +114,7 @@ into a structured Garmin workout and schedules it:
   "date": "2027-08-05",
   "lap_meters": 400,             // nominal distance represented by one lap press
   "rest_style": "rest",          // rest = complete rest (standing) | recovery = slow jog
-  "warmup":    {"laps": 5, "hr_min": 128, "hr_max": 150},   // 5 x 400m = 2 km
+  "warmup":    {"laps": 5},                    // 5 x 400m = 2 km (no HR target on warm-up, see below)
   "pre_rest_min": 6,
   "sets": 6, "laps_per_set": 3,  // 6 sets x 3 x 400m = 7.2 km (3 lap presses per set)
   "set_rest_min": 3,
@@ -137,25 +137,65 @@ repeat 6x  [ interval - lap.button x3 , rest 3 min ]
 | `lap_meters` | no | default 400; used for the generated descriptions/summary only |
 | `rest_style` | no | default `rest` (**standing still**). Write `recovery` only if the rest is a jog |
 | `warmup.laps` / `cooldown.laps` | no | how many lap-press laps to warm up / cool down |
-| `warmup.hr_min/hr_max` | no | warm-up HR range (custom HR target) |
+| ~~`warmup.hr_min/hr_max`~~ | — | **deprecated**: the warm-up carries **no HR target**. If present it is ignored with a WARNING |
 | `pre_rest_min` / `set_rest_min` | no | pre / inter-set rest in minutes |
 | `sets` / `laps_per_set` | no | number of sets and laps per set |
 
+**Warm-up and cooldown never carry an HR target** (runner's instruction, 2026-09-19). During a
+warm-up the heart rate climbs from resting, so a band on that step just fires low-HR alerts the
+whole way — it turns the warm-up into chasing a number. Cooldown already had none; warm-up now
+matches. `warmup.hr_min/hr_max` is a legacy field: still accepted, no longer applied.
+
 **Note**: `week_spec` + `garmin_schedule.py` can only express continuous runs —
 they cannot express interval structure. Interval sessions must go through this
-track spec. Both share the same registry (idempotent by workout name).
+track spec. Both share the same registry (idempotent by workout name **plus a content
+fingerprint**, so a changed session is rebuilt even when its name is unchanged — see §4).
 
 ## 4. Workout registry `garmin_workout_registry.json`
 
-`scripts/garmin_schedule.py`'s idempotency cache: workout name → Garmin workout id.
+The idempotency cache **shared** by `garmin_schedule.py` (continuous runs) and
+`garmin_track_workout.py` (track intervals). Format v2:
 
 ```json
-{ "W1 Tue E5": 12345678 }
+{ "schema_version": 2,
+  "workouts": {
+    "W1 Tue E5":          {"id": 12345678, "kind": "run",   "fp": "a1b2c3d4e5f60718"},
+    "W1 Thu Track 6x1.2k": {"id": 12345679, "kind": "track", "fp": "0f1e2d3c4b5a6978"}
+  }}
 ```
+
+- `kind`: `run` = built by `create_run_workout`; `track` = the structured DTO sent to
+  `upload_workout`. The two scripts share one file, so this keeps same-named sessions apart.
+- `fp` = a **content fingerprint**: canonical JSON of the arguments actually handed to the tool
+  (derived values such as `minutes` resolved first), sha256, first 16 hex chars. **A name is not
+  an identity** — renaming does not matter, changing content does.
+- **v1 migration**: v1 was a flat `name -> id` map. It is recognised by value type and normalised
+  to `fp=None`. An entry with `fp=None` is **not blindly rebuilt**: the script fetches that
+  workout back from Garmin and, **if the content still matches, adopts it** (stamping the
+  fingerprint). Only a mismatch triggers a rebuild — so upgrading does not churn the watch.
+
+**What every push does** (`--dry-run` prints the plan and writes nothing):
+
+| verdict | when |
+|---|---|
+| `create` | the session is not in the registry |
+| `reuse` | the workout is still on Garmin **and its content matches what we would build** |
+| `replace` | the workout is gone, **or its content differs** (including hand-edits in Connect) |
+
+`replace` runs **create new -> schedule new -> delete old** (build first, so a failure mid-way
+cannot leave the watch empty; a deleted workout's calendar entry disappears with it).
+Comparison is **semantic only** (duration, HR target, step structure) and deliberately
+**ignores descriptions** — those are server-generated, so comparing them would rebuild forever.
+
+Afterwards the script **reads the calendar back** (`get_scheduled_workouts`) as proof the change
+landed. Garmin's calendar is **eventually consistent**: right after a create+delete pair it can
+still show the old workout, so the read-back retries.
 
 - Runtime artifact that lives **only in the runner's private workspace** (gitignored);
   the repo ships a fabricated example only.
-- Re-running the same week never duplicates workouts, only adds schedules.
+- Any session that fails (create / schedule / delete-old) makes the script **exit non-zero**
+  and lists what failed.
+- Implementation: `scripts/workout_registry.py`.
 
 ## 4b. Wellness baseline `garmin_wellness.json`
 

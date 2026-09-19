@@ -84,12 +84,19 @@ Work from the activity detail, **never from the whole-session average**:
 
 ## 6. Replacing and idempotency
 
-- The script is idempotent by **workout name**: re-running the same name only re-schedules.
-- **Changed the prescription? Change the name** (e.g. `6×1.2k` → `5×1.2k`). The same name does
-  not overwrite — `upload_workout` always creates a new workout, and the old one just clutters
-  the library.
-- Clean-up order: schedule the new one first, then `delete_workout` the old one. **A deleted
-  workout's calendar entry disappears with it**, so there is no need to call
+- The script is idempotent by **workout name plus a content fingerprint**. `--dry-run` prints a
+  per-session verdict: `create` / `reuse` / `replace`, each with its reason.
+- **Changed the prescription? Just re-run** (`6×1.2k` → `5×1.2k`, a different rest style, a
+  changed warm-up — all count). The script sees the fingerprint differ and does
+  **create new -> schedule new -> delete old** for you. **Do not hand-roll name changes** any
+  more: that was the old workaround for "same name silently reuses the old workout", and it left
+  a trail of junk names in the library.
+- The order is **build first, delete second**, so a failure mid-way cannot leave the watch empty.
+  **A deleted workout's calendar entry disappears with it**, so there is no need to call
   `unschedule_workout` (which, confusingly, wants `scheduled_workout_id`, not `workout_id`).
-- Read back with `get_workouts` / `get_workout_by_id` / `get_scheduled_workouts` — **always
-  verify after creating**, to confirm Garmin did not rewrite `lap.button` or the rest style.
+- Replacement compares **meaning only** (duration, HR target, step structure) and deliberately
+  **ignores descriptions** — those are server-generated, so comparing them would rebuild every time.
+- After writing, the script **reads the calendar back** itself (`get_scheduled_workouts`). Garmin's
+  calendar is **eventually consistent**: right after a create+delete pair it can still show the old
+  workout, so the read-back retries. To check by hand use `get_workouts` / `get_workout_by_id` /
+  `get_scheduled_workouts`.

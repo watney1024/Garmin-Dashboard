@@ -25,10 +25,18 @@ Session model (see scripts/track_spec.example.json)
 Rest style matters: ``rest`` = complete rest (standing still), ``recovery`` =
 active recovery (slow jog). Pick the one the session actually uses.
 
-Idempotent: created workouts are cached name -> workout_id in
-<data_dir>/garmin_workout_registry.json, so re-running only re-schedules.
+Idempotent: <data_dir>/garmin_workout_registry.json caches the workout id AND a fingerprint
+of the built DTO. If the spec changes — even when the name does not — the workout is rebuilt
+(upload new -> schedule -> delete old), so the watch cannot silently keep a stale version.
+See scripts/workout_registry.py and docs/02 §4.
+
+Conventions:
+- The warm-up carries NO heart-rate target, on purpose: during a warm-up the heart rate
+  climbs from resting, so a band on that step just fires low-HR alerts. `warmup.hr_min/hr_max`
+  in a spec is ignored, with a warning (docs/02 §3b).
 
 Config: same env vars as garmin_pull.py / garmin_schedule.py (see docs/01).
+Exit codes: 0 ok · 1 the session did not reach Garmin · 2 config error.
 """
 import argparse
 import json
@@ -37,6 +45,10 @@ import shutil
 import subprocess
 import sys
 import time
+
+# Shared with garmin_schedule.py: registry format, fingerprinting, drift detection.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import workout_registry as wrg  # noqa: E402
 
 # Garmin DTO ids (workout API, NOT the activity API). See docs/01 §3.
 STEP = {"warmup": 1, "cooldown": 2, "interval": 3, "recovery": 4, "rest": 5, "repeat": 6}
@@ -59,22 +71,6 @@ def load_dotenv():
                 k, _, v = line.partition("=")
                 k, v = k.strip(), v.strip().strip("\"'")
                 os.environ.setdefault(k, v)
-
-
-def load_reg(path):
-    if os.path.exists(path):
-        try:
-            with open(path, encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-
-def save_reg(path, reg):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(reg, f, ensure_ascii=False, indent=1)
-        f.write("\n")
 
 
 class MCP:
@@ -195,11 +191,12 @@ def build(spec):
 
     warm = spec.get("warmup") or {}
     if warm.get("laps"):
-        hr = ((warm["hr_min"], warm["hr_max"])
-              if warm.get("hr_min") and warm.get("hr_max") else None)
+        if warm.get("hr_min") or warm.get("hr_max"):
+            print("WARNING: warmup.hr_min/hr_max ignored — the warm-up of a track session "
+                  "carries no heart-rate target, on purpose (docs/02 §3b). Remove them.")
         grp = nxt()
         inner = _lap_step(nxt(), "warmup",
-                          "%dm 计圈（%d × %dm 热身）" % (lap, warm["laps"], lap), hr)
+                          "%dm 计圈（%d × %dm 热身）" % (lap, warm["laps"], lap))
         steps.append(_repeat(grp, warm["laps"], [inner],
                              desc="热身 = %d × %dm = %.2f km"
                                   % (warm["laps"], lap, warm["laps"] * lap / 1000.0)))
@@ -307,34 +304,87 @@ def main():
     print(summarize(spec))
     if args.print_json:
         print(json.dumps(workout, ensure_ascii=False, indent=1))
-    if args.dry_run:
-        print("\n(dry-run) no changes will be made")
-        return
 
-    reg = load_reg(reg_path)
+    reg = wrg.load_reg(reg_path)
     cfg = argparse.Namespace(src=src, uvx=uvx, pyver=pyver)
+
+    name = spec["name"]
+    session = {
+        "date": spec.get("date"), "name": name, "kind": wrg.KIND_TRACK,
+        "expect": {"dto": workout},
+        "fp": wrg.fingerprint(wrg.KIND_TRACK, {"workout_data": workout}),
+        "call": ("upload_workout", {"workout_data": workout}),
+    }
+
+    failures = []
     m = MCP(cfg)
     m.connect()
     try:
-        name = spec["name"]
-        wid = reg.get(name)
-        if not wid:
-            res = m.call("upload_workout", {"workout_data": workout})
+        # read-only: is the cached copy still the one we would build?
+        try:
+            action = wrg.plan_actions([session], reg, wrg.make_remote_get(m.call))[0]
+        except wrg.RemoteLookupError as e:
+            print("ERROR: %s" % e, file=sys.stderr)
+            sys.exit(2)
+
+        print("- %s" % (spec.get("date") or "(no date)"))
+        print("    %-7s %s%s" % (action["action"], action["reason"],
+                                 "" if action["old_id"] is None
+                                 else "  [old id=%s]" % action["old_id"]))
+
+        if args.dry_run:
+            print("(dry-run) nothing was written")
+            print("done")
+            return
+
+        wid = action["old_id"]
+        if action["action"] != "reuse":
+            res = m.call(*action["call"])
             wid = parse_id(res)
             if not wid:
-                print("   !! upload failed:", json.dumps(res, ensure_ascii=False)[:300])
-                return
-            reg[name] = wid
-            save_reg(reg_path, reg)
-            print("   uploaded id=%s" % wid)
-        else:
-            print("   reuse id=%s (registry)" % wid)
+                print("   !! upload failed: %s"
+                      % json.dumps(res, ensure_ascii=False)[:300])
+                print("done")
+                sys.exit(1)
+
+        scheduled = {}
         if spec.get("date") and not args.no_schedule:
-            s = m.call("schedule_workout", {"workout_id": wid,
-                                            "calendar_date": spec["date"]})
-            print("   schedule:", s.get("message") if isinstance(s, dict) else s)
+            sres = m.call("schedule_workout", {"workout_id": wid,
+                                               "calendar_date": spec["date"]})
+            if wrg.write_landed(sres):
+                scheduled[spec["date"]] = wid
+            else:
+                print("   !! schedule failed: %s"
+                      % json.dumps(sres, ensure_ascii=False)[:300])
+                failures.append("%s: could not schedule" % spec["date"])
+
+        note = ""
+        if action["action"] == "replace" and action["old_id"]:
+            dres = m.call("delete_workout", {"workout_id": action["old_id"]})
+            if wrg.write_landed(dres):
+                note = "  (old id=%s deleted)" % action["old_id"]
+            else:
+                print("   !! delete of old id=%s failed: %s"
+                      % (action["old_id"], json.dumps(dres, ensure_ascii=False)[:200]))
+                failures.append("old workout %s not deleted" % action["old_id"])
+
+        reg[name] = {"id": wid, "kind": wrg.KIND_TRACK, "fp": action["fp"]}
+        wrg.save_reg(reg_path, reg)
+        print("   %-7s id=%s -> %s%s"
+              % (action["action"], wid, spec.get("date") or "-", note))
+
+        if scheduled:
+            vfails, summary = wrg.verify_schedule(m.call, scheduled)
+            print("   " + summary)
+            failures.extend(vfails)
     finally:
         m.close()
+
+    if failures:
+        print("\nFAILED (%d):" % len(failures), file=sys.stderr)
+        for f in failures:
+            print("  - %s" % f, file=sys.stderr)
+        sys.exit(1)
     print("done")
 
 

@@ -21,8 +21,13 @@ Conventions:
   strength sessions that the runner manages separately must NOT be scheduled here.
 
 Config: same env vars as garmin_pull.py (see its header or docs/01).
-Idempotency: created workouts are cached name->workout_id in
-<data_dir>/garmin_workout_registry.json.
+
+Idempotency: <data_dir>/garmin_workout_registry.json caches each session's workout id AND
+a fingerprint of the arguments that created it. A session whose NAME is unchanged but whose
+CONTENT changed is rebuilt (create new -> schedule -> delete old), so the watch can never
+silently keep a stale version. See scripts/workout_registry.py and docs/02 §4.
+
+Exit codes: 0 ok · 1 one or more sessions did not reach Garmin · 2 config error.
 """
 import argparse
 import json
@@ -31,6 +36,10 @@ import shutil
 import subprocess
 import sys
 import time
+
+# Shared with garmin_track_workout.py: registry format, fingerprinting, drift detection.
+sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
+import workout_registry as wrg  # noqa: E402
 
 
 def load_dotenv():
@@ -46,21 +55,6 @@ def load_dotenv():
                 k, _, v = line.partition("=")
                 k, v = k.strip(), v.strip().strip("\"'")
                 os.environ.setdefault(k, v)
-
-
-def load_reg(path):
-    if os.path.exists(path):
-        try:
-            with open(path, encoding="utf-8") as f:
-                return json.load(f)
-        except Exception:
-            return {}
-    return {}
-
-
-def save_reg(path, reg):
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(reg, f, ensure_ascii=False, indent=1)
 
 
 class MCP:
@@ -156,46 +150,109 @@ def main():
 
     with open(args.spec, encoding="utf-8") as f:
         spec = json.load(f)
-    reg = load_reg(reg_path)
+    reg = wrg.load_reg(reg_path)
     cfg = argparse.Namespace(src=src, uvx=uvx, pyver=pyver)
 
-    print(f"== {spec.get('name', '')} -> Garmin ==")
-    if args.dry_run:
-        print("(dry-run) no changes will be made")
+    # What SHOULD be on the watch — resolved values, so the fingerprint means something.
+    sessions = []
+    for d in spec.get("days", []):
+        km = d.get("distance_km", 0)
+        pace = d.get("pace_min_km", 6.5)
+        mins = d.get("minutes") or (int(round(km * pace)) if km else 30)
+        hr_min, hr_max = d.get("hr_min", 120), d.get("hr_max", 150)
+        cargs = {"name": d["name"], "run_seconds": mins * 60, "warmup_min": 0,
+                 "cooldown_min": 0, "hr_min": hr_min, "hr_max": hr_max}
+        sessions.append({
+            "date": d["date"], "name": d["name"], "kind": wrg.KIND_RUN,
+            "expect": {"duration": mins * 60, "hr": (hr_min, hr_max)},
+            "fp": wrg.fingerprint(wrg.KIND_RUN, cargs),
+            "call": ("create_run_workout", cargs),
+            "summary": "%dmin, HR%d-%d" % (mins, hr_min, hr_max),
+        })
 
+    print(f"== {spec.get('name', '')} -> Garmin ==")
+    if not sessions:
+        print("no sessions in this spec")
+        print("done")
+        return
+
+    failures = []
     m = MCP(cfg)
     m.connect()
     try:
-        for d in spec.get("days", []):
-            date, name = d["date"], d["name"]
-            km = d.get("distance_km", 0)
-            pace = d.get("pace_min_km", 6.5)
-            mins = d.get("minutes") or (int(round(km * pace)) if km else 30)
-            hr_min, hr_max = d.get("hr_min", 120), d.get("hr_max", 150)
-            print(f"- {date} {name}  ({mins}min, HR{hr_min}-{hr_max})")
-            if args.dry_run:
-                continue
-            wid = reg.get(name)
-            if not wid:
-                res = m.call("create_run_workout", {
-                    "name": name, "run_seconds": mins * 60,
-                    "warmup_min": 0, "cooldown_min": 0,
-                    "hr_min": hr_min, "hr_max": hr_max})
+        # --- read-only phase: decide create / reuse / replace for every session ---
+        try:
+            actions = wrg.plan_actions(sessions, reg, wrg.make_remote_get(m.call))
+        except wrg.RemoteLookupError as e:
+            print("ERROR: %s" % e, file=sys.stderr)
+            sys.exit(2)
+
+        for a in actions:
+            print("- %s %s  (%s)" % (a["date"], a["name"], a["summary"]))
+            print("    %-7s %s%s" % (a["action"], a["reason"],
+                                     "" if a["old_id"] is None
+                                     else "  [old id=%s]" % a["old_id"]))
+
+        if args.dry_run:
+            print("(dry-run) nothing was written")
+            print("done")
+            return
+
+        # --- write phase ---
+        scheduled = {}
+        for a in actions:
+            name, date = a["name"], a["date"]
+            wid = a["old_id"]
+            if a["action"] != "reuse":
+                tool, tool_args = a["call"]
+                res = m.call(tool, tool_args)
                 wid = parse_id(res)
                 if not wid:
-                    print("   !! create failed:",
-                          json.dumps(res, ensure_ascii=False)[:300])
+                    print("   !! %s failed: %s"
+                          % (tool, json.dumps(res, ensure_ascii=False)[:300]))
+                    failures.append("%s %s: could not create the workout" % (date, name))
                     continue
-                reg[name] = wid
-                save_reg(reg_path, reg)
-                print(f"   created id={wid}")
-            s = m.call("schedule_workout", {"workout_id": wid, "calendar_date": date})
-            msg = s.get("message") if isinstance(s, dict) else json.dumps(
-                s, ensure_ascii=False)[:200]
-            print("   schedule:", msg)
+
+            sres = m.call("schedule_workout", {"workout_id": wid, "calendar_date": date})
+            if not wrg.write_landed(sres):
+                print("   !! schedule failed: %s"
+                      % json.dumps(sres, ensure_ascii=False)[:300])
+                failures.append("%s %s: could not schedule" % (date, name))
+                continue
+            scheduled[date] = wid
+
+            note = ""
+            if a["action"] == "replace" and a["old_id"]:
+                # The new one is already scheduled, so a failed delete cannot leave the
+                # watch empty — but it must still be reported.
+                dres = m.call("delete_workout", {"workout_id": a["old_id"]})
+                if wrg.write_landed(dres):
+                    note = "  (old id=%s deleted)" % a["old_id"]
+                else:
+                    print("   !! delete of old id=%s failed: %s"
+                          % (a["old_id"], json.dumps(dres, ensure_ascii=False)[:200]))
+                    failures.append("%s %s: old workout %s not deleted"
+                                    % (date, name, a["old_id"]))
+
+            if a["action"] != "reuse" or reg.get(name, {}).get("fp") != a["fp"]:
+                reg[name] = {"id": wid, "kind": a["kind"], "fp": a["fp"]}
+                wrg.save_reg(reg_path, reg)
+
+            print("   %-7s id=%s -> %s%s" % (a["action"], wid, date, note))
             time.sleep(0.3)
+
+        if scheduled:
+            vfails, summary = wrg.verify_schedule(m.call, scheduled)
+            print("   " + summary)
+            failures.extend(vfails)
     finally:
         m.close()
+
+    if failures:
+        print("\nFAILED (%d):" % len(failures), file=sys.stderr)
+        for f in failures:
+            print("  - %s" % f, file=sys.stderr)
+        sys.exit(1)
     print("done")
 
 

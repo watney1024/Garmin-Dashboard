@@ -82,6 +82,12 @@ Create & schedule the plan's running sessions to Garmin for the week (or run
 watch distance is decoupled from the real lap). Load `.agents/skills/track-workout/`.
 操场/间歇课走这条路，别用连续跑课去近似。
 
+**Run `--dry-run` first** and read the per-session verdict. Both scripts are idempotent by
+**content fingerprint**, not by name: a session whose prescription changed is rebuilt
+(create new → schedule → delete old) even if its name is unchanged, so a plan edit can no
+longer fail to reach the watch. The track session's **warm-up carries no HR target** by
+design (`warmup.hr_min/hr_max` is ignored). See `docs/02` §3b/§4.
+
 ## Engineering notes / 工程说明
 
 - `scripts/*.py` are stdlib-only; configured via env vars / CLI (see `scripts/README.md` and

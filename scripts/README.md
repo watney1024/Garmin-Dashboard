@@ -6,8 +6,8 @@ scripts to change behaviour. 纯标准库；通过命令行参数或环境变量
 | Script | Purpose | 用途 |
 |---|---|---|
 | `garmin_pull.py` | rebuild the 16-column master CSV + download per-activity detail CSVs through garmin-mcp | 拉数据重建主表与单次明细 |
-| `garmin_schedule.py` | create & schedule a week's run workouts to Garmin (idempotent) | 把周课表排进 Garmin 日历 |
-| `garmin_track_workout.py` | build & schedule a **track/interval** session with lap-button steps (watch distance decoupled from the 400 m lap) | 建并排**操场间歇课**（计圈键＝标称距离） |
+| `garmin_schedule.py` | create & schedule a week's run workouts — idempotent by **content fingerprint**, so a changed session is rebuilt instead of silently reused (docs/02 §4) | 把周课表排进 Garmin 日历；改内容即自动重建 |
+| `garmin_track_workout.py` | build & schedule a **track/interval** session with lap-button steps (watch distance decoupled from the 400 m lap); its warm-up carries no HR target | 建并排**操场间歇课**（计圈键＝标称距离）；热身不设心率靶 |
 | `vdot.py` | race result → VDOT → training pace/times; intensity points & N-point session caps (docs/09 §7); `--selfcheck` | 成绩转 VDOT 与配速；强度点数与 N 分课上限；数据自检 |
 | `garmin_wellness.py` | pull the **wellness baseline** for a date range (resting HR · sleep · HRV · body composition · training status) — acquisition only, it computes no light/threshold (docs/02 §4b) | 拉**健康基线**（静息心率·睡眠·HRV·体重·训练状态）；只取数、不判灯 |
 
@@ -54,9 +54,15 @@ Data schemas are documented in `docs/02_data_schema_zh.md`. The files produced
 under the data dir (master CSV, inbox CSVs, registry JSON, wellness JSON) are runtime
 artifacts for the runner's private workspace and must not be committed.
 
+`workout_registry.py` is a shared **library** (no CLI) used by both scheduling scripts: the
+registry format, content fingerprints, and the "is the copy on the watch still what we would
+build?" drift check. Run either scheduling script with `--dry-run` to see its plan
+(`create` / `reuse` / `replace` + reason) without writing anything.
+
 Exit codes: `0` on success, `2` on a missing/invalid config. `garmin_pull.py` additionally
 exits **`1`** on a fetch/write failure — and in that case leaves `Activities.csv` untouched:
-the master is written atomically and is never rebuilt from an empty or errored fetch.
+the master is written atomically and is never rebuilt from an empty or errored fetch. The two
+scheduling scripts exit **`1`** if any session failed to reach Garmin.
 
 Tests (stdlib `unittest`, no third-party runner):
 

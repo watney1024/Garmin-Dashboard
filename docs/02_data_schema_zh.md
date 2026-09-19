@@ -99,7 +99,7 @@ TYPE_CN = {
   "date": "2027-08-05",
   "lap_meters": 400,             // 计圈键代表的标称距离
   "rest_style": "rest",          // rest = 完全休息（静止） | recovery = 活动恢复（慢跑）
-  "warmup":    {"laps": 5, "hr_min": 128, "hr_max": 150},   // 5 × 400m = 2 km
+  "warmup":    {"laps": 5},                    // 5 × 400m = 2 km（热身不带心率靶，见下）
   "pre_rest_min": 6,
   "sets": 6, "laps_per_set": 3,  // 6 组 × 3 × 400m = 7.2 km（每组 3 次计圈）
   "set_rest_min": 3,
@@ -124,23 +124,57 @@ repeat 6×  [ interval · lap.button ×3 , rest 3 min ]
 | `lap_meters` | 否 | 默认 400；仅用于生成描述文字与摘要 |
 | `rest_style` | 否 | 默认 `rest`（**静止**）。若组间是慢跑，必须显式写 `recovery` |
 | `warmup.laps` / `cooldown.laps` | 否 | 按计圈键做几圈热身/冷身 |
-| `warmup.hr_min/hr_max` | 否 | 热身心率区间（自定义 HR 目标） |
+| ~~`warmup.hr_min/hr_max`~~ | — | **已废弃**：热身**不设心率靶**。写了也只打一行 WARNING 并忽略 |
 | `pre_rest_min` / `set_rest_min` | 否 | 前置休息 / 组间休息（分钟） |
 | `sets` / `laps_per_set` | 否 | 组数与每组圈数 |
 
+**热身/冷身一律不带心率靶**（2026-09-19 跑者明确要求）。理由：热身期心率本来就从静息往上爬，
+挂一个区间只会**全程触发下限告警**，把热身变成"追心率"。冷身本来就无靶，热身现已对齐。
+`warmup.hr_min/hr_max` 是历史字段，仍兼容读取但不再生效。
+
 **注意**：`week_spec` + `garmin_schedule.py` **只能表达连续跑课**，无法表达间歇结构；
-间歇课必须走本节的 track spec。两者共用同一个 registry（按课名幂等）。
+间歇课必须走本节的 track spec。两者共用同一个 registry（幂等键＝课名 ＋ **内容指纹**，
+所以改了内容而名字没变也会重建；见 §4）。
 
 ## 4. 已建训练 registry `garmin_workout_registry.json`
 
-`scripts/garmin_schedule.py` 的幂等缓存：课名 → Garmin workout id。
+`garmin_schedule.py`（连续跑课）与 `garmin_track_workout.py`（操场间歇课）**共用**的幂等缓存。
+格式 v2：
 
 ```json
-{ "W1 Tue E5": 12345678 }
+{ "schema_version": 2,
+  "workouts": {
+    "W1 周二 E5":        {"id": 12345678, "kind": "run",   "fp": "a1b2c3d4e5f60718"},
+    "W1 周四 操场 6×1.2k": {"id": 12345679, "kind": "track", "fp": "0f1e2d3c4b5a6978"}
+  }}
 ```
 
+- `kind`：`run` = `create_run_workout` 建的；`track` = `upload_workout` 传的结构化课。
+  两个脚本共用一个文件，靠它区分同名课。
+- `fp` = **内容指纹**：对「实际传给工具的参数字典」做规范化 JSON 后取 sha256 前 16 位
+  （`minutes` 这类派生值先解析再算）。**名字不是身份**——改名不重要，改内容才重要。
+- **v1 迁移**：v1 是扁平的 `课名 → id`。加载时按值类型识别并归一化为 `fp=None`。
+  `fp=None` 的条目**不会盲目重建**：脚本会去 Garmin 取回那节课，**内容对得上就照收**
+  （并补写指纹），对不上才重建。所以升级不会白折腾一遍手表。
+
+**每次推送的行为**（`--dry-run` 只打印、不写）：
+
+| 判定 | 条件 |
+|---|---|
+| `create` | registry 里没有这节课 |
+| `reuse` | 课还在 Garmin 上，**且内容与本次要建的一致** |
+| `replace` | 课不在 Garmin 了，**或内容不一致**（含"手表上被手工改过"） |
+
+`replace` 的顺序是 **建新课 → 排新课 → 删旧课**（先建后删，中途失败也不会把手表弄空；
+旧课被删时其日历条目自动消失）。**只比语义**（时长、心率靶、步骤结构），
+**不比 description**——描述由服务端生成，比它会导致每次推送都重建。
+
+排期后脚本会**回读日历**校验（`get_scheduled_workouts`）——这是"改动真的到手上了"的证据。
+Garmin 日历是**最终一致**的，紧随一次"建+删"之后可能仍显示旧课，所以回读带重试。
+
 - 运行时产物，**只存在于跑者私有工作区**（gitignored），仓库只放虚构示例。
-- 重跑同一周 spec 不会重复建课，只会补排期。
+- 任何一课失败（建课/排期/删旧课）都会让脚本**非零退出**，并逐条列出。
+- 实现见 `scripts/workout_registry.py`。
 
 ## 4b. 健康基线 `garmin_wellness.json`
 
