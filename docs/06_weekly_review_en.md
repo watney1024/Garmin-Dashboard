@@ -20,6 +20,9 @@ HTML.
    compute **intensity points** per activity and the weekly total (procedure and distortion
    handling in docs/09 §7: moving time; cap walk-break sessions, record interval sessions
    by their planned point target).
+   **Also compute the "strength-session density"** (the informational item at the end of §3):
+   for master-CSV rows with activity type `力量训练` take `moving time ÷ total time`, list each
+   session and the weekly mean — it describes the rhythm of the strength work and **judges nothing**.
 3. Fill the six subjective metrics into the training log for the matching W section
    (docs/03 §2; missing → "主观数据缺失", injury line first).
 4. Write the four-section review (§2 below) appended to the rolling weekly-review doc.
@@ -64,6 +67,17 @@ HTML.
   the rules in the table above. Whether they should take part is an open Roadmap item, and the
   hard rule is that the safety layer may only be made **stricter**. **Resting HR is the
   exception**: it is already in the table above and is judged by those rules.
+- **Strength-session density = `moving time ÷ total time`, informational only** (since
+  2026-09-19, per the runner). Source: master-CSV rows with activity type `力量训练` — the two
+  columns already exist, so no change to the 16-column schema in docs/02. Bouldering is
+  **not applicable** (Garmin produces no moving time for it; it is always 0).
+  How to read it: low density means a high share of rest between sets, i.e. less actual stimulus
+  for the same duration — but also **less interference with running recovery** (roughly 20–40%,
+  with an average HR clearly below the E band, is what a *supplementary* strength session should
+  look like). ⚠ It **neither triggers nor relaxes** any light, and it does not support a
+  "add more load" conclusion — how heavy the sets are and how many reps they contain **do not
+  exist in Garmin data at all** (the activity records duration / HR / calories only), so load can
+  only be judged if the runner writes it down.
 - On conflict with the plan's chapter 10 / coach gates: take the stricter option that
   respects the safety layer.
 

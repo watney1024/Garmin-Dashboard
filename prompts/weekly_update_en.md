@@ -46,11 +46,20 @@ previous training week (Monday–Sunday):
    `no_data`/`error` must be flagged as such — **never substitute a 0 or an estimate**. ⚠ Inside
    that file, **sleep / HRV / training status do not take part in judging the light**
    (docs/06 §3); only **resting HR** is judged, by the existing +8 bpm rule.
-5. Write the review: append a four-section entry (docs/06) to <WEEKLY_REVIEW> and update
+5. **Also compute "strength-session density" (informational, judges nothing)**: for master-CSV
+   rows with activity type `力量训练`, take **`moving time ÷ total time`**, list each session and
+   the weekly mean, and put it in the review. How to read it is in the last bullet of docs/06 §3:
+   low density means a high share of rest between sets — less actual stimulus per hour, but also
+   **less interference with running recovery** (20–40% with an average HR clearly below the E band
+   is what a *supplementary* strength session should look like). ⚠ **Bouldering does not apply**
+   (Garmin produces no moving time for it; always 0). ⚠ **Loads and reps per set do not exist in
+   Garmin data at all**, so load can only be judged if I write it down — **never infer "add more
+   load" from density**.
+6. Write the review: append a four-section entry (docs/06) to <WEEKLY_REVIEW> and update
    the gate-progress table; the light judgement cites the exact generic-safety rule.
-6. Judge the light and adjust the plan if needed: on yellow/red or a gate result, edit
+7. Judge the light and adjust the plan if needed: on yellow/red or a gate result, edit
    <PLAN_HTML> (week tables, plan-vs-actual `canvas id=trk` actual array), append a vN row
    to the version table and bump; on a race result sync the runner profile & VDOT.
-7. Reply in ≤400 characters: last week's volume/completion, risk colour, next-week
+8. Reply in ≤400 characters: last week's volume/completion, risk colour, next-week
    changes, and one thing for me to watch (include any newly detected sensor / data break).
 ```
