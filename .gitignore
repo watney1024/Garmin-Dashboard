@@ -27,6 +27,7 @@ runtime/
 data/inbox/*.csv
 data/Activities.csv
 data/garmin_workout_registry.json
+data/garmin_wellness.json
 
 # ===== local runner profile (never commit the real one) =====
 *.yaml

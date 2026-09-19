@@ -6,7 +6,9 @@
 ```
 [每周更新] 今天是 <月/日>。请完成上一训练周（周一到周日）的记录更新与计划调整：
 
-1. 刷新客观数据：若已加载 garmin_mcp 工具，用 get_activities 分页拉全量重建 <DATA_DIR>/Activities.csv（保持 16 列规范与倒序，见 docs/02）；对上周新增活动用 download_activity_file(activity_id, format="csv") 补下载到 <DATA_DIR>/inbox/activity_<id>.csv。工具不可用就只读现有文件并在结论里注明数据截止日期，绝不要让我手动导出。
+1. 刷新客观数据：
+   (a) **健康基线**：跑 `python scripts/garmin_wellness.py --since <上周一> --until <上周日>`，产物 `<DATA_DIR>/garmin_wellness.json`（静息心率/睡眠/HRV/体重/训练状态；schema 见 docs/02 §4b）。**静息心率/睡眠/体重这三个数就在这个文件里，不要再手搓 MCP 调用去取。**
+   (b) **活动**：用 get_activities 分页拉全量重建 <DATA_DIR>/Activities.csv（保持 16 列规范与倒序，见 docs/02）；对上周新增活动用 download_activity_file(activity_id, format="csv") 补下载到 <DATA_DIR>/inbox/activity_<id>.csv。工具不可用就只读现有文件并在结论里注明数据截止日期，绝不要让我手动导出。
 2. 识别传感器与高阶数据：除手表外，跑者可能戴**心率带**、**跑步动态传感器/跑步豆**、功率计（Stryd 等）。**先自己从数据里认，认不出再问我**：
    - 心率带独有：**左右平衡**（groundContactBalanceLeft）· **呼吸率** · 着地时间占比——腕式不产生这三项；
      FIT 里还会多出一个 `source_type=antplus` 的配对设备（**序列号**可作准绳，比字段有无更硬）。
@@ -23,7 +25,7 @@
    - 结论（设备、首次出现日期、覆盖哪几次活动）写进 <TRAINING_LOG> 当周备注。**真认不出就问我**：
      戴了什么配件、从哪天开始、哪几次漏戴。
 3. 读跑者档案 <RUNNER_PROFILE.yaml> 与计划 <PLAN_HTML>，确认当前 A 赛/所在周（W__）；传感器结论若有变化（新增/停用）同步回档案。
-4. 填主观 6 项：把上周晨起静息心率/体重/睡眠/RPE/伤病四部位/偏差原因填进 <TRAINING_LOG> 对应 W 节；缺就写"主观数据缺失"，伤病信号行优先。
+4. 填主观 6 项：**晨起静息心率/体重/睡眠直接读 `<DATA_DIR>/garmin_wellness.json`**（静息心率＝`days[].resting_hr.bpm`，睡眠＝`days[].sleep.data.sleep_seconds`，体重＝`body_composition`），连同 RPE/伤病四部位/偏差原因填进 <TRAINING_LOG> 对应 W 节。缺就写"主观数据缺失"，伤病信号行优先；`state` 是 `no_data`/`error` 的项要照实标注，**绝不用 0 或估算值顶替**。⚠ 该文件里的**睡眠/HRV/训练状态不参与判灯**（docs/06 §3），只有**静息心率**按既有 +8 bpm 规则判。
 5. 出复盘：按 docs/06 四段式把一节追加到 <WEEKLY_REVIEW>，并更新顶部闸门进度表；判断按通用安全层引用具体规则。
 6. 判灯并按需改计划：黄/红触发或闸门结果需调整时，改 <PLAN_HTML> 逐周课表、计划 vs 实际（canvas id=trk 的实际值数组），版本记录追加 vN 行并递增；比赛成绩更新则同步 runner_profile 与 VDOT。
 7. 回复 ≤400 字：上周跑量/完成度、风险颜色、下周改了什么、需要我注意的一件事（含新识别到的传感器/数据断点）。

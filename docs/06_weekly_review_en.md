@@ -5,13 +5,16 @@ the runner's one sentence into (a) a record, (b) a judgement, (c) next-week
 adjustments.** Default cadence: every Monday covering the previous Mon–Sun week; the
 runner may trigger it any time.
 
-Inputs: the rebuilt `Activities.csv` + `inbox/activity_<id>.csv` (new downloads) + the
-runner's one sentence + `runner_profile.yaml` + the plan HTML.
+Inputs: the rebuilt `Activities.csv` + `inbox/activity_<id>.csv` (new downloads) + the wellness
+baseline `garmin_wellness.json` + the runner's one sentence + `runner_profile.yaml` + the plan
+HTML.
 
 ## 1. Review steps (fixed order)
 
-1. Refresh objective data (pull via MCP when available, docs/01; otherwise state the
-   data-cutoff date).
+1. Refresh objective data: the wellness baseline via
+   `python scripts/garmin_wellness.py --since <last Mon> --until <last Sun>` (resting HR /
+   sleep / HRV / training status, schema in docs/02 §4b), and the activity master + details via
+   `scripts/garmin_pull.py` (docs/01). Without MCP tools, state the data-cutoff date.
 2. Match this week's activities (by activity ID), compute weekly volume / completion;
    download any missing detail CSVs. If the coach package uses points (e.g. daniels_vdot),
    compute **intensity points** per activity and the weekly total (procedure and distortion
@@ -53,6 +56,11 @@ runner's one sentence + `runner_profile.yaml` + the plan HTML.
 - Coach red lines may only tighten; always **cite the rule** (e.g. `Yellow: left achilles 3`).
 - Intensity points (docs/09 §7) are **advisory**: they inform trend-watching and
   within-coach volume tuning only — they trigger, and can never loosen, any yellow/red rule.
+- **The objective physiological metrics (sleep / HRV / training load) are informational too**:
+  the ones in `garmin_wellness.json` **neither trigger nor relax** any light — judging uses only
+  the rules in the table above. Whether they should take part is an open Roadmap item, and the
+  hard rule is that the safety layer may only be made **stricter**. **Resting HR is the
+  exception**: it is already in the table above and is judged by those rules.
 - On conflict with the plan's chapter 10 / coach gates: take the stricter option that
   respects the safety layer.
 

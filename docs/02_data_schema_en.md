@@ -157,11 +157,64 @@ track spec. Both share the same registry (idempotent by workout name).
   the repo ships a fabricated example only.
 - Re-running the same week never duplicates workouts, only adds schedules.
 
+## 4b. Wellness baseline `garmin_wellness.json`
+
+Produced by `scripts/garmin_wellness.py`: the objective baseline the weekly review needs,
+pulled in one go — resting HR · sleep · HRV · body composition · training status.
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-19T16:00:00",
+  "range": {"start": "2026-09-14", "end": "2026-09-19", "days": 6},
+  "advisory": "acquisition only: no light, threshold or advice is computed here.",
+  "days": [
+    {"date": "2026-09-16",
+     "resting_hr":         {"state": "ok", "bpm": 44.0},
+     "sleep":              {"state": "ok", "data": { }},
+     "hrv":                {"state": "ok", "data": { }},
+     "training_status":    {"state": "ok", "data": { }},
+     "training_readiness": {"state": "no_data", "detail": "No training readiness data found for 2026-09-16"}}
+  ],
+  "body_composition": {"state": "ok", "start_date": "…", "end_date": "…",
+                       "logged_days": 0, "data": { }},
+  "errors": [{"date": "…", "metric": "training_readiness",
+              "state": "no_data", "detail": "…"}]
+}
+```
+
+**How to read it (three hard rules):**
+
+1. **`state` is acquisition state, not runner state**: `ok` / `no_data` / `error`.
+   **`no_data` ≠ 0** — for a day with nothing recorded Garmin returns
+   `{"error": false, "raw": "No … data found …"}`; the script records `no_data` and keeps the
+   original text. **Never write a 0 in place of a measurement.** Same for
+   `body_composition.logged_days: 0` (this runner has never logged a weight).
+2. **The name `state` is deliberate**: Garmin's own hrv / training_status payloads **carry their
+   own `status` field** (e.g. `BALANCED`), passed through verbatim inside `data` — it must not be
+   overwritten.
+3. **Only resting HR is normalised** (`resting_hr.bpm`, lifted from
+   `WELLNESS_RESTING_HEART_RATE`); every other payload is passed through verbatim, so an upstream
+   field rename cannot silently change meaning.
+
+**This file never judges.** Resting HR is **currently the only** physiological objective metric
+wired into the safety layer (docs/06 §3: 2 consecutive days ≥ +8 bpm over baseline → yellow);
+sleep / HRV / training load are **informational only**. Whether they should take part in the
+judgement is an open Roadmap item, with the hard rule that the safety layer may only be made
+**stricter** — until that is decided, an agent must not trigger or relax any light from them.
+
+- Runtime artifact that lives **only in the runner's private workspace** (gitignored) — and it
+  **contains health data**: `.gitignore` lists `data/garmin_wellness.json` separately. Do not
+  treat it as a committable example.
+- Dates are Garmin account calendar days (UTC+8, the runner's timezone); **sleep is attributed to
+  the date you woke up on**.
+
 ## 5. Private vs repo
 
 The repo only ships: schemas, `week_spec.example.json`, and fabricated examples. Any real
-`Activities.csv`, `inbox/*.csv`, registry, and runner profile stay in the runner's private
-workspace (put them under `workspace/`, which is gitignored) — never in git history.
+`Activities.csv`, `inbox/*.csv`, registry, wellness-baseline JSON, and runner profile stay in the
+runner's private workspace (put them under `workspace/`, which is gitignored) — never in git
+history.
 
 ## 6. Data pitfalls checklist (must follow when analysing)
 

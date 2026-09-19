@@ -41,7 +41,7 @@ uvx --python 3.12 --from <garmin_mcp dir> garmin-mcp-auth --is-cn
 Same clone, but stay on `main` (or the official release); authenticate **without**
 `--is-cn` and leave `GARMIN_IS_CN` unset.
 
-## 2. Script environment variables (garmin_pull.py & garmin_schedule.py)
+## 2. Script environment variables (`scripts/garmin_*.py`)
 
 | variable | meaning | default |
 |---|---|---|
@@ -50,7 +50,7 @@ Same clone, but stay on `main` (or the official release); authenticate **without
 | `GARMIN_MCP_PYTHON` | python version for the uvx env | `3.12` |
 | `GARMIN_IS_CN` | set `true` for China accounts | inherited from env |
 | `UV_DEFAULT_INDEX` | optional pip index for CN networks | inherited from env |
-| `GARMIN_DATA_DIR` | output dir (master/inbox/registry live under it) | `./data` |
+| `GARMIN_DATA_DIR` | output dir (master/inbox/registry/wellness live under it) | `./data` |
 
 A `.env` file at the repo root or next to the script is auto-loaded (see
 `.env.example`); **real tokens/passwords never go into `.env` or git.**
@@ -61,6 +61,7 @@ export GARMIN_MCP_SRC=/path/to/garmin_mcp
 export GARMIN_IS_CN=true            # China account
 python scripts/garmin_pull.py --master-only          # rebuild the master only
 python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
+python scripts/garmin_wellness.py --since 2026-09-14 --until 2026-09-20   # wellness baseline
 ```
 
 ## 3. MCP tools (agents may call them directly, or via the scripts)
@@ -75,7 +76,7 @@ python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
 |---|---|---|
 | `get_activities` | `{start, limit:100}` (paginate full list) | rebuild the master table |
 | `download_activity_file` | `{activity_id, format:"csv", output_dir}` | download per-session detail |
-| `set_activity_name` | `{activity_id, name}` | batch-rename Garmin titles (title governance) |
+| `set_activity_name` | `{activity_id, activity_name}` | batch-rename Garmin titles (title governance) |
 | `create_run_workout` | `{name, run_seconds, warmup_min, cooldown_min, hr_min, hr_max}` | create a **continuous** run workout |
 | `upload_workout` | `{workout_data}` | create a workout of **any structure** (intervals, lap-button steps; DTO see `workout://reference/structure`) |
 | `get_workouts` / `get_workout_by_id` | `{}` / `{workout_id}` | list the library / read one workout's structure |
@@ -83,7 +84,10 @@ python scripts/garmin_schedule.py scripts/week_spec.example.json --dry-run
 | `unschedule_workout` | `{scheduled_workout_id}` | remove from the calendar (**use `scheduled_workout_id`, not `workout_id`**) |
 | `delete_workout` | `{workout_id}` | delete a workout; its calendar entry disappears with it |
 | `get_scheduled_workouts` | `{start_date, end_date}` | read the calendar |
-| `get_rhr_day` / `get_sleep_summary` / `get_body_composition` / `get_user_profile` / `get_lactate_threshold` | `{date}` / `{}` | baselines: resting HR · sleep · weight · profile · lactate threshold (for the profile and the safety layer) |
+| `get_rhr_day` / `get_sleep_summary` / `get_hrv_data` / `get_training_status` / `get_training_readiness` | `{date}` (**single date**; loop per day for a range) | wellness baseline: resting HR · sleep · HRV · training status. Wrapped by `scripts/garmin_wellness.py`; output schema in `docs/02 §4b` |
+| `get_body_composition` | `{start_date, end_date}` (**a range**, unlike the row above) | weight / body composition |
+| `get_lactate_threshold` | `{start_date, end_date}` | lactate threshold (for the profile and the safety layer) |
+| `get_user_profile` | `{}` | runner profile (sex · birthday · height/weight, …) |
 
 If you configure MCP in a desktop agent (Claude Desktop / CodeBuddy, …), point that
 server at the same garmin-mcp source (pr-249 branch for CN) with `GARMIN_IS_CN=true`; the

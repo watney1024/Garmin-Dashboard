@@ -7,11 +7,9 @@
 [weekly_update] Today is <month/day>. Please complete the update & adjustment for the
 previous training week (Monday–Sunday):
 
-1. Refresh objective data: if garmin_mcp tools are loaded, paginate get_activities to
-   rebuild <DATA_DIR>/Activities.csv (keep the 16-column canonical format & ordering,
-   docs/02); for new activities call download_activity_file(activity_id, format="csv")
-   into <DATA_DIR>/inbox/activity_<id>.csv. If tools are unavailable, read the existing
-   files and state the data-cutoff date in your conclusion — never ask me to export.
+1. Refresh objective data:
+   (a) **Wellness baseline**: run `python scripts/garmin_wellness.py --since <last Mon> --until <last Sun>`, producing `<DATA_DIR>/garmin_wellness.json` (resting HR / sleep / HRV / weight / training status; schema in docs/02 §4b). **Resting HR, sleep and weight all live in this file — do not hand-roll MCP calls for them.**
+   (b) **Activities**: paginate get_activities to rebuild <DATA_DIR>/Activities.csv (keep the 16-column canonical format & ordering, docs/02); for new activities call download_activity_file(activity_id, format="csv") into <DATA_DIR>/inbox/activity_<id>.csv. If tools are unavailable, read the existing files and state the data-cutoff date in your conclusion — never ask me to export.
 2. Detect sensors & advanced data: besides the watch the runner may wear an **HR strap**,
    a **running-dynamics pod**, or a power meter (Stryd, …). **Work it out from the data
    first; only ask me when you can't**:
@@ -40,9 +38,14 @@ previous training week (Monday–Sunday):
      which sessions it was left off.
 3. Read the runner profile <RUNNER_PROFILE.yaml> and the plan <PLAN_HTML>; confirm the
    current A race / week (W__); sync any sensor change (added/retired) back to the profile.
-4. Fill the 6 subjective metrics: resting HR / weight / sleep / RPE / injury 4 sites /
-   deviation reason into <TRAINING_LOG> for the matching W section; write "主观数据缺失"
-   where missing; the injury line has priority.
+4. Fill the 6 subjective metrics: **read morning resting HR / weight / sleep straight out of
+   `<DATA_DIR>/garmin_wellness.json`** (resting HR = `days[].resting_hr.bpm`, sleep =
+   `days[].sleep.data.sleep_seconds`, weight = `body_composition`), then put them with
+   RPE / injury 4 sites / deviation reason into <TRAINING_LOG> for the matching W section.
+   Write "主观数据缺失" where missing; the injury line has priority; entries whose `state` is
+   `no_data`/`error` must be flagged as such — **never substitute a 0 or an estimate**. ⚠ Inside
+   that file, **sleep / HRV / training status do not take part in judging the light**
+   (docs/06 §3); only **resting HR** is judged, by the existing +8 bpm rule.
 5. Write the review: append a four-section entry (docs/06) to <WEEKLY_REVIEW> and update
    the gate-progress table; the light judgement cites the exact generic-safety rule.
 6. Judge the light and adjust the plan if needed: on yellow/red or a gate result, edit

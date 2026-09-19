@@ -48,7 +48,7 @@ If the repo is used as the private workspace itself, keep runtime files under `w
   known-deviations table (no silent drift). 计划必须自包含、偏离必须留痕。
 - **Any plan edit appends a `vN` row** to the version table — increment, never skip.
  改计划必追加版本行 vN。
-- **Safety rules cannot be relaxed.** 通用安全层（主观 6 项、伤病分级单侧 ≥5=红、RHR+8
+- **Safety rules cannot be relaxed.** 通用安全层（主观 6 项、伤病分级单侧 ≥5=红、静息心率+8
   黄灯等，见 `docs/03`/`docs/06`）是默认底线；教练包只能在此之上加严。
 - **Prefetch fresh data when MCP tools are available** (`docs/01`); otherwise state the
   data-cutoff date in your reply. 有工具先拉数据，没有就标注数据日期。
@@ -66,8 +66,10 @@ dashboard (chapters defined in `docs/05`) with races, A-race, weekly skeleton, p
 schedule, zone table, red lines & gates, tracking chapter. Bump version `v1`.
 
 ### B. Weekly update — prompt `prompts/weekly_update_zh.md`
-Pull data → fill the 6 subjective metrics into the log → write the 4-section review →
-judge yellow/red → edit the plan if needed (schedule tables + `trk` canvas + version `vN`).
+Pull data (`scripts/garmin_pull.py` for activities; `scripts/garmin_wellness.py` for the
+wellness baseline — resting HR, sleep, HRV, body composition, training status) → fill the
+6 subjective metrics into the log → write the 4-section review → judge yellow/red → edit the
+plan if needed (schedule tables + `trk` canvas + version `vN`).
 
 ### C. This week's schedule — prompt `prompts/current_week_schedule_zh.md`
 Read the plan's current week and report it back to the runner.
@@ -85,4 +87,4 @@ watch distance is decoupled from the real lap). Load `.agents/skills/track-worko
 - `scripts/*.py` are stdlib-only; configured via env vars / CLI (see `scripts/README.md` and
   `docs/01`). Do not add third-party dependencies.
 - Data formats live in `docs/02` (16-column master CSV, inbox `activity_<id>.csv`, week-spec
-  JSON, registry JSON). Preserve them exactly.
+  JSON, registry JSON, wellness JSON). Preserve them exactly.

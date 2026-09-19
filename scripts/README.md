@@ -9,9 +9,10 @@ scripts to change behaviour. 纯标准库；通过命令行参数或环境变量
 | `garmin_schedule.py` | create & schedule a week's run workouts to Garmin (idempotent) | 把周课表排进 Garmin 日历 |
 | `garmin_track_workout.py` | build & schedule a **track/interval** session with lap-button steps (watch distance decoupled from the 400 m lap) | 建并排**操场间歇课**（计圈键＝标称距离） |
 | `vdot.py` | race result → VDOT → training pace/times; intensity points & N-point session caps (docs/09 §7); `--selfcheck` | 成绩转 VDOT 与配速；强度点数与 N 分课上限；数据自检 |
+| `garmin_wellness.py` | pull the **wellness baseline** for a date range (resting HR · sleep · HRV · body composition · training status) — acquisition only, it computes no light/threshold (docs/02 §4b) | 拉**健康基线**（静息心率·睡眠·HRV·体重·训练状态）；只取数、不判灯 |
 
 Environment variables (see `.env.example` and `docs/01_mcp_setup_zh.md`):
-`GARMIN_MCP_SRC` (required for the two Garmin scripts), `UVX_BIN`,
+`GARMIN_MCP_SRC` (required for the Garmin scripts), `UVX_BIN`,
 `GARMIN_MCP_PYTHON` (default 3.12), `GARMIN_IS_CN` (set `true` for China
 accounts), optional `UV_DEFAULT_INDEX`, `GARMIN_DATA_DIR` (default `./data`).
 A `.env` file in the repo root or next to the script is read if present.
@@ -30,6 +31,9 @@ python scripts/garmin_schedule.py scripts/week_spec.example.json
 python scripts/garmin_track_workout.py scripts/track_spec.example.json --dry-run
 python scripts/garmin_track_workout.py scripts/track_spec.example.json --print-json
 
+# wellness baseline for the weekly review (default: last 14 days)
+python scripts/garmin_wellness.py --since 2026-09-14 --until 2026-09-20
+
 # VDOT lookups (data from data/vdot/; GPL-3.0-derived, see NOTICE.md)
 python scripts/vdot.py --5k 23:45
 python scripts/vdot.py --race-time 1:52:30 --distance half
@@ -47,5 +51,5 @@ python scripts/vdot.py --selfcheck
 ```
 
 Data schemas are documented in `docs/02_data_schema_zh.md`. The files produced
-under the data dir (master CSV, inbox CSVs, registry JSON) are runtime artifacts
-for the runner's private workspace and must not be committed.
+under the data dir (master CSV, inbox CSVs, registry JSON, wellness JSON) are runtime
+artifacts for the runner's private workspace and must not be committed.

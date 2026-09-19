@@ -142,9 +142,54 @@ repeat 6×  [ interval · lap.button ×3 , rest 3 min ]
 - 运行时产物，**只存在于跑者私有工作区**（gitignored），仓库只放虚构示例。
 - 重跑同一周 spec 不会重复建课，只会补排期。
 
+## 4b. 健康基线 `garmin_wellness.json`
+
+`scripts/garmin_wellness.py` 的产物：把周复盘要用的**客观基线**一次拉齐——
+静息心率 · 睡眠 · HRV · 体重/体成分 · 训练状态。
+
+```json
+{
+  "schema_version": 1,
+  "generated_at": "2026-09-19T16:00:00",
+  "range": {"start": "2026-09-14", "end": "2026-09-19", "days": 6},
+  "advisory": "纯客观取数：本文件不含任何红黄灯判定、阈值或建议。",
+  "days": [
+    {"date": "2026-09-16",
+     "resting_hr":         {"state": "ok", "bpm": 44.0},
+     "sleep":              {"state": "ok", "data": { }},
+     "hrv":                {"state": "ok", "data": { }},
+     "training_status":    {"state": "ok", "data": { }},
+     "training_readiness": {"state": "no_data", "detail": "No training readiness data found for 2026-09-16"}}
+  ],
+  "body_composition": {"state": "ok", "start_date": "…", "end_date": "…",
+                       "logged_days": 0, "data": { }},
+  "errors": [{"date": "…", "metric": "training_readiness",
+              "state": "no_data", "detail": "…"}]
+}
+```
+
+**读法（三条硬约定）**：
+
+1. **`state` 是取数状态，不是跑者状态**：`ok` / `no_data` / `error`。
+   **`no_data` ≠ 0** —— Garmin 对"当天没记录"返回 `{"error": false, "raw": "No … data found …"}`，
+   脚本记为 `no_data` 并保留原文，**绝不写 0 冒充测量值**。`body_composition.logged_days: 0`
+   同理（本案跑者从未称重）。
+2. **`state` 这个名字是故意的**：Garmin 自己的 hrv / training_status 载荷里**自带 `status` 字段**
+   （如 `BALANCED`），原样透传在 `data` 里，不能被覆盖。
+3. **只归一化静息心率**（`resting_hr.bpm`，从 `WELLNESS_RESTING_HEART_RATE` 提出来）；
+   其余 payload **原样透传**，上游改字段名不会静默改变语义。
+
+**这份文件不判灯。** 静息心率是**目前唯一**进了安全层的生理客观指标（docs/06 §3：连续 2 天比
+基线 +8 bpm → 黄灯）；睡眠 / HRV / 训练负荷**目前只是信息项**。是否让它们参与判定是 Roadmap
+的未决项，硬约束是**只许加严**——在定案前，agent 不得据此触发或放宽任何红黄灯。
+
+- 运行时产物，**只存在于跑者私有工作区**（gitignored）；且**含健康数据**：
+  `.gitignore` 已单列 `data/garmin_wellness.json`，不要把它当可提交的示例。
+- 日期是 Garmin 账户本地日历日（UTC+8，与跑者时区一致）；**睡眠归属醒来的那天**。
+
 ## 5. 私有 vs 仓库
 
-仓库只提交：schema、`week_spec.example.json`、虚构示例。任何**真实**的 `Activities.csv`、`inbox/*.csv`、registry、runner profile 都在跑者私有工作区（建议放 `workspace/`，已 gitignore），绝不进 git。
+仓库只提交：schema、`week_spec.example.json`、虚构示例。任何**真实**的 `Activities.csv`、`inbox/*.csv`、registry、健康基线 JSON、runner profile 都在跑者私有工作区（建议放 `workspace/`，已 gitignore），绝不进 git。
 
 ## 6. 数据坑清单（分析时必须遵守）
 
