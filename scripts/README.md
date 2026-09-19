@@ -53,3 +53,13 @@ python scripts/vdot.py --selfcheck
 Data schemas are documented in `docs/02_data_schema_zh.md`. The files produced
 under the data dir (master CSV, inbox CSVs, registry JSON, wellness JSON) are runtime
 artifacts for the runner's private workspace and must not be committed.
+
+Exit codes: `0` on success, `2` on a missing/invalid config. `garmin_pull.py` additionally
+exits **`1`** on a fetch/write failure — and in that case leaves `Activities.csv` untouched:
+the master is written atomically and is never rebuilt from an empty or errored fetch.
+
+Tests (stdlib `unittest`, no third-party runner):
+
+```bash
+python -m unittest discover -s tests -v
+```

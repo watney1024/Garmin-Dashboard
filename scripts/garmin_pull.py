@@ -19,6 +19,10 @@ Config (CLI flags take precedence over env vars):
   UV_DEFAULT_INDEX         optional pip index (e.g. a mirror), inherited from env
   --data-dir / GARMIN_DATA_DIR   output dir (default ./data)
 
+Exit codes: 0 ok · 1 fetch/write failure (master CSV left untouched) · 2 config error.
+The master is written atomically and never from an empty/errored fetch, so a bad token
+or a flaky call can no longer truncate your activity history.
+
 Dependencies: an authenticated token at ~/.garminconnect (produced once by
 `garmin-mcp-auth`; valid ~6 months). See docs/01_mcp_setup_zh.md, including the
 PR #249 requirement for China accounts.
@@ -49,6 +53,17 @@ HDR = [
     "累计下降m", "事件类型", "活动ID",
 ]
 RUN_TYPES = ("running", "track_running", "trail_running", "treadmill_running")
+
+MAX_PAGES = 200   # 200 x 100 = 20k activities; past this something is wrong, not just slow
+
+
+class GarminFetchError(RuntimeError):
+    """A whole-run failure that must never be allowed to rewrite the master CSV.
+
+    An error envelope from the MCP server used to look exactly like "the account has no
+    activities" (both ended up as []), and rebuild_master then truncated the master to a
+    header-only file while exiting 0. Raising instead is the whole point of this class.
+    """
 
 
 # ---------------------------------------------------------------------------
@@ -167,48 +182,104 @@ class MCP:
 # ---------------------------------------------------------------------------
 # pull logic
 # ---------------------------------------------------------------------------
+def _page_items(res):
+    """Pull the activity list out of a get_activities response, or raise.
+
+    A non-list, non-dict response, an error envelope, or a dict with no "activities" key
+    all used to fall through to [] — indistinguishable from "no activities" — which then
+    truncated the master.
+    """
+    if isinstance(res, list):
+        return res
+    if isinstance(res, dict):
+        if res.get("error"):
+            raise GarminFetchError("get_activities failed: %s"
+                                   % str(res.get("raw"))[:200])
+        if "activities" in res:
+            return res.get("activities") or []
+        raise GarminFetchError("unexpected get_activities response: %s"
+                               % str(res)[:200])
+    raise GarminFetchError("unexpected get_activities response type: %r" % (type(res),))
+
+
 def fetch_all(cfg):
     m = MCP(cfg, "garmin-pull")
     m.connect()
-    out, start = [], 0
+    out, start, prev_key = [], 0, None
     try:
-        while True:
-            res = m.call("get_activities", {"start": start, "limit": 100})
-            items = res if isinstance(res, list) else (
-                res.get("activities") if isinstance(res, dict) else [])
+        for _ in range(MAX_PAGES):
+            items = _page_items(m.call("get_activities", {"start": start, "limit": 100}))
             if not items:
-                break
+                return out
+            key = tuple(a.get("id") for a in items)
+            if key == prev_key:
+                raise GarminFetchError(
+                    "get_activities returned the same page twice at start=%d "
+                    "(server ignoring 'start'?)" % start)
+            prev_key = key
             out.extend(items)
             start += len(items)
             if len(items) < 100:
-                break
+                return out
             time.sleep(0.3)
+        raise GarminFetchError(
+            "get_activities exceeded MAX_PAGES=%d; refusing to guess at the rest"
+            % MAX_PAGES)
     finally:
         m.close()
-    return out
+
+
+def _render_master(acts):
+    """Build the whole 16-column CSV as text (newest first). Same format as ever."""
+    acts_sorted = sorted(acts, key=lambda x: x["start_time"], reverse=True)
+    lines = [",".join(HDR)]
+    for a in acts_sorted:
+        t = a.get("type", "")
+        is_run = t in RUN_TYPES
+        dm = a.get("distance_meters") or 0
+        vals = [
+            TYPE_CN.get(t, t), t, a.get("start_time", ""), a.get("name", ""),
+            round(dm / 1000.0, 2) if dm else "",
+            hms(a.get("duration_seconds")),
+            hms(a.get("moving_duration_seconds")),
+            pace(a.get("moving_duration_seconds"), dm, is_run),
+            a.get("calories", ""), a.get("avg_hr_bpm", ""), a.get("max_hr_bpm", ""),
+            a.get("steps", ""), a.get("elevation_gain_meters", ""),
+            a.get("elevation_loss_meters", ""), a.get("event_type", ""), a.get("id", ""),
+        ]
+        lines.append(",".join(_csv_cell(v) for v in vals))
+    return "\n".join(lines) + "\n", len(acts_sorted)
+
+
+def _atomic_write_text(path, text, encoding):
+    """Write to a temp file in the same directory, then os.replace.
+
+    A crash part-way through must never leave a half-written master behind.
+    """
+    d = os.path.dirname(os.path.abspath(path))
+    fd, tmp = tempfile.mkstemp(dir=d, prefix=".Activities.", suffix=".tmp")
+    try:
+        with os.fdopen(fd, "w", encoding=encoding, newline="") as f:
+            f.write(text)
+        os.replace(tmp, path)
+    except BaseException:
+        try:
+            os.unlink(tmp)
+        except OSError:
+            pass
+        raise
 
 
 def rebuild_master(cfg, acts):
     master = os.path.join(cfg.data_dir, "Activities.csv")
-    acts_sorted = sorted(acts, key=lambda x: x["start_time"], reverse=True)
-    with open(master, "w", encoding="utf-8-sig", newline="") as f:
-        f.write(",".join(HDR) + "\n")
-        for a in acts_sorted:
-            t = a.get("type", "")
-            is_run = t in RUN_TYPES
-            dm = a.get("distance_meters") or 0
-            vals = [
-                TYPE_CN.get(t, t), t, a.get("start_time", ""), a.get("name", ""),
-                round(dm / 1000.0, 2) if dm else "",
-                hms(a.get("duration_seconds")),
-                hms(a.get("moving_duration_seconds")),
-                pace(a.get("moving_duration_seconds"), dm, is_run),
-                a.get("calories", ""), a.get("avg_hr_bpm", ""), a.get("max_hr_bpm", ""),
-                a.get("steps", ""), a.get("elevation_gain_meters", ""),
-                a.get("elevation_loss_meters", ""), a.get("event_type", ""), a.get("id", ""),
-            ]
-            f.write(",".join(_csv_cell(v) for v in vals) + "\n")
-    print("master:", master, "rows", len(acts_sorted))
+    if not acts and os.path.exists(master):
+        raise GarminFetchError(
+            "refusing to overwrite %s with an empty activity list — the file was left "
+            "untouched. Check token/auth (docs/01)." % master)
+    text, n = _render_master(acts)
+    _atomic_write_text(master, text, "utf-8-sig")
+    print("master:", master, "rows", n)
+    return n
 
 
 def download_since(cfg, acts, since):
@@ -279,10 +350,14 @@ def main():
     os.makedirs(os.path.join(data_dir, "inbox"), exist_ok=True)
     cfg = argparse.Namespace(src=src, uvx=uvx, pyver=pyver, data_dir=data_dir)
 
-    acts = fetch_all(cfg)
-    if not acts:
-        print("WARNING: get_activities returned nothing. Check token/auth (docs/01).")
-    rebuild_master(cfg, acts)
+    try:
+        acts = fetch_all(cfg)
+        rebuild_master(cfg, acts)
+    except GarminFetchError as e:
+        print("ERROR: %s" % e, file=sys.stderr)
+        print("ERROR: Activities.csv was left untouched; nothing was written.",
+              file=sys.stderr)
+        sys.exit(1)
     if not args.master_only:
         since = args.since or time.strftime(
             "%Y-%m-%d", time.localtime(time.time() - 14 * 86400))

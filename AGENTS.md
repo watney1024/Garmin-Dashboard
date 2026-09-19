@@ -88,3 +88,7 @@ watch distance is decoupled from the real lap). Load `.agents/skills/track-worko
   `docs/01`). Do not add third-party dependencies.
 - Data formats live in `docs/02` (16-column master CSV, inbox `activity_<id>.csv`, week-spec
   JSON, registry JSON, wellness JSON). Preserve them exactly.
+- **Tests** live in `tests/` — stdlib `unittest`, no third-party runner:
+  `python -m unittest discover -s tests`. They cover the destructive paths in
+  `garmin_pull.py`: a fetch error or an empty response must **never** rewrite the master
+  CSV. Read them before changing that script.
