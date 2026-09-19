@@ -38,14 +38,22 @@
    counts running distance only (strength and rest excluded).
 7. Land the gates and red lines on concrete dates, including the veto "if the peak long
    run fails, race-day starts conservative".
-8. Produce a self-contained HTML (10 chapters, chapter/naming per examples/plan.example.html;
+8. **Add a "milestones" table inside chapter 4 (cycle structure)** (docs/05 §2 step 8, §4):
+   milestones are **achievements**, unlike gates (**decision points**) — missing one is
+   **recorded only and never changes the plan on its own**. Each needs a target week/date
+   plus a criterion **verifiable from the data** (no "feels stronger"); **dense early,
+   sparse late** (the lower the starting mileage, the denser); a low-mileage runner needs
+   **consistency/health** milestones (e.g. "3 straight weeks ≥90% completion"), not an
+   all-results list.
+9. Produce a self-contained HTML (10 chapters, chapter/naming per examples/plan.example.html;
    no external references, charts drawn on plain canvas). **Charts must show the per-week
    values on mouse hover** (a self-contained `.ctip` tooltip, no external library, hidden when
    not hovering). Chapter 10 carries the "this file is the constitution" sentence and the
    known-deviations table; the version table gets v1 with its basis.
-9. In your output list the self-check: profile-consistent, no invented paces, one A,
+10. In your output list the self-check: profile-consistent, no invented paces, one A,
    volume within caps, all seven days present in the weekly table, the volume array matching
-   the total column, **charts readable on hover**, version recorded.
-10. Reply in ≤400 characters: A race & goal, VDOT, weekly skeleton, peak week volume,
+   the total column, **charts readable on hover**, **the milestone table present (every entry
+   data-verifiable and kept separate from gates)**, version recorded.
+11. Reply in ≤400 characters: A race & goal, VDOT, weekly skeleton, peak week volume,
     sensor findings, 1-2 things for me to watch.
 ```
