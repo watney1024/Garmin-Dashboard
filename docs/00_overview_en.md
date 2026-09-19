@@ -30,11 +30,11 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent entry point | agent first stop |
 | `docs/00–10` | rule docs (bilingual _zh/_en) | agents, all |
-| `.agents/skills/` | coach methodology skills (Agent Skills standard; 5 initial + how-to docs/10) | agents, loaded fully before plan generation |
+| `.agents/skills/` | coach methodology packages (5 initial) + capability skills (`track-workout`); Agent Skills standard, index in its README, how-to in docs/10 | agents load a coach fully before planning; capability skills on demand |
 | `prompts/` | copy-paste prompts for the agent | runners |
-| `scripts/` | data / schedule / VDOT tools (stdlib only) | run directly |
+| `scripts/` | data / schedule / VDOT / profile-wizard tools (stdlib only) | run directly; gate the profile on `profile_wizard.py --check` |
 | `data/vdot/` | canonical VDOT tables (pace & race; GPL-3.0-derived, see README) | lookups |
-| `examples/` | fabricated example-runner set (CC0) | study by analogy |
+| `examples/` | fabricated example-runner set (CC0): a **filled** profile, a **blank questionnaire**, the sample plan | study by analogy |
 | `LICENSE / NOTICE.md` | MIT + third-party notices | — |
 
 ## 5. Core conventions (everyone obeys)
@@ -59,7 +59,7 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 | doc | contents |
 |---|---|
 | 01 | garmin-mcp install/auth (CN = PR #249 / intl = main), script envs, tool list |
-| 02 | data formats: 16-col master, inbox, week-spec, registry, pitfalls |
+| 02 | data formats: 16-col master, inbox, week-spec (§3), track-spec (§3b), registry (§4), wellness JSON (§4b), pitfalls |
 | 03 | six subjective metrics, one-sentence template, injury scale, yellow/red safety baseline |
 | 04 | summarising past training (comparability discipline, outputs, known mistakes) |
 | 05 | plan generation: profile + coach + VDOT → HTML plan (chapter slots, doctrine, self-check) |

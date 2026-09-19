@@ -238,7 +238,8 @@ pulled in one go — resting HR · sleep · HRV · body composition · training 
    field rename cannot silently change meaning.
 
 **This file never judges.** Resting HR is **currently the only** physiological objective metric
-wired into the safety layer (docs/06 §3: 2 consecutive days ≥ +8 bpm over baseline → yellow);
+wired into the safety layer (docs/06 §3: +8 bpm over baseline for **1 day → yellow**; for
+**2 consecutive days → red, but the action is only "rest that day"**, not a 3-day layoff);
 sleep / HRV / training load are **informational only**. Whether they should take part in the
 judgement is an open Roadmap item, with the hard rule that the safety layer may only be made
 **stricter** — until that is decided, an agent must not trigger or relax any light from them.

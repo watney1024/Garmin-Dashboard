@@ -48,8 +48,11 @@ HTML.
 
 | level | trigger (any) | auto action |
 |---|---|---|
-| 🟡 Yellow | resting HR > baseline **+8 bpm** for 2 consecutive days; any site injury **3–4**; weekly volume done **<80%**; two consecutive weeks RPE≥8 | drop the week's easy/recovery run; long run **-20%**; no quality segments that week |
-| 🔴 Red | any site injury **≥5**; **unilateral** pain (the key one); two consecutive weeks done **<70%** | **stop 3 days**; lower the target band; keep strength (halve lower body); after recovery restart from the current week — **never make up missed volume** |
+| 🟡 Yellow | resting HR **+8 bpm above baseline for 1 day**; any site injury **3–4**; weekly volume done **<80%**; two consecutive weeks RPE≥8 | drop the week's easy/recovery run; long run **-20%**; no quality segments that week |
+| 🔴 Red | resting HR **+8 bpm above baseline for 2 consecutive days**; any site injury **≥5**; **unilateral** pain (the key one); two consecutive weeks done **<70%** | injury/completion triggers: **stop 3 days**; **resting-HR trigger: rest that day only** (do not apply "stop 3 days"); lower the target band; keep strength (halve lower body); after recovery restart from the current week — **never make up missed volume** |
+
+- **The resting-HR +8 bpm rule has two tiers**: **1 day = 🟡**; **2 consecutive days = 🔴, but the
+  action is only "rest that day"** — never carry over red's default "stop 3 days" (docs/03 §4).
 
 - Bilateral soreness = fatigue, you may run; **unilateral pain = structural, the runner does
   not self-judge it** (docs/03 §3).

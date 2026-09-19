@@ -29,11 +29,11 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 |---|---|---|
 | `AGENTS.md` | agent 入口 | agent 第一站 |
 | `docs/00–10` | 规则文档（双语 _zh/_en） | agent 全部 |
-| `.agents/skills/` | 教练理念技能包（Agent Skills 标准，5 个首批 + 新增指南 docs/10） | agent 生成计划前整包加载 |
+| `.agents/skills/` | 教练理念技能包（5 个首批）＋ 能力技能（`track-workout`）；Agent Skills 标准，索引见其 README，新增见 docs/10 | agent 生成计划前整包加载；能力技能按场景加载 |
 | `prompts/` | 可直接发 agent 的提示词 | 跑者复制粘贴 |
-| `scripts/` | 数据/排课/VDOT 工具（stdlib） | 脚本直跑 |
+| `scripts/` | 数据/排课/VDOT/档案向导工具（stdlib） | 脚本直跑；档案用 `profile_wizard.py --check` 把关 |
 | `data/vdot/` | VDOT 规范表（配速/等效成绩；GPL-3.0 派生，见其 README） | 查询 |
-| `examples/` | 虚构示例跑者全套（CC0） | 对照学习 |
+| `examples/` | 虚构示例跑者全套（CC0）：**填好的**档案、**空白问卷**、示例计划 | 对照学习 |
 | `LICENSE / NOTICE.md` | MIT + 第三方声明 | — |
 
 ## 5. 核心约定（所有人遵守）
@@ -53,7 +53,7 @@ Garmin Connect ──MCP stdio──> scripts/garmin_pull.py ──> Activities.
 | doc | 内容 |
 |---|---|
 | 01 | garmin-mcp 安装鉴权（CN=PR#249 / 国际=main）、脚本 env、工具清单 |
-| 02 | 数据格式：主表 16 列、inbox、week-spec、registry、数据坑 |
+| 02 | 数据格式：主表 16 列、inbox、week-spec（§3）、track-spec（§3b）、registry（§4）、健康基线 wellness JSON（§4b）、数据坑 |
 | 03 | 主观 6 项、一句话模板、伤病分级、黄/红灯安全基线 |
 | 04 | 如何总结既往训练（可比性纪律、输出物、已知错误） |
 | 05 | 计划生成：档案+教练包+VDOT → HTML 计划（章节槽位、口径、自检） |

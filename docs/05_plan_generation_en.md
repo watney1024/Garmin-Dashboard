@@ -15,7 +15,10 @@ standard); the numbers come from VDOT
 
 ## 2. Generation flow (fixed order)
 
-1. **Read the profile**: `runner_profile.yaml` (interview first if absent, see docs/08).
+1. **Read the profile**: `runner_profile.yaml` (interview first if absent, see docs/08; use
+   `prompts/collect_profile_en.md`). **Validate before you start**:
+   `python scripts/profile_wizard.py --check <profile>` must report 0 errors — a wrong profile
+   makes every week of the schedule wrong.
 2. **Load the coach skill**: read `.agents/skills/coach-<coach>/SKILL.md`, then the full
    method `references/coach-<coach>_<lang>.md` (`<coach>` = profile's `coach`, `_`→`-`;
    `<lang>` = profile `language`); if the fit is

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>示例跑者 · 马拉松 16 周训练计划 · 2027.08.02 – 11.21 · v2</title>
+<title>示例跑者 · 马拉松 16 周训练计划 · 2027.08.02 – 11.21 · v3</title>
 <style>
   :root{
     --ink:#1a1a18; --ink2:#5f5e5a; --ink3:#8a8983;
@@ -123,7 +123,7 @@
 <div class="page">
 
 <h1>示例跑者 · 马拉松 16 周训练计划</h1>
-<p class="lede">2027.08.02 – 11.21 · 目标 4:00（5:41/km）· 每周 4 跑（周二质量 + 周四/周五轻松 + 周日长距离）· 力量周三/周六 · 教练包 daniels_vdot · VDOT 39.4 · <strong>v2</strong></p>
+<p class="lede">2027.08.02 – 11.21 · 目标 4:00（5:41/km）· 每周 4 跑（周二质量 + 周四/周五轻松 + 周日长距离）· 力量周三/周六 · 教练包 daniels_vdot · VDOT 39.4 · <strong>v3</strong></p>
 
 <div class="cards">
   <div class="card"><div class="k">距比赛</div><div class="v">16 周</div><div class="n">112 天</div></div>
@@ -413,10 +413,11 @@ E 课的上限就是上限——不追"更快的轻松跑"。</div>
 <div class="tw"><table>
 <thead><tr><th style="width:12%">等级</th><th style="width:44%">触发（任一）</th><th>自动动作</th></tr></thead>
 <tbody>
-<tr><td><span class="tag t-amber">黄灯</span></td><td>静息心率连续 2 天比基线 +8 bpm；任一部位伤病 3–4；周跑量完成 &lt;80%；连续两周 RPE ≥8</td><td>砍周六力量或周五恢复；长距离降 20%；当周不安排 T/I</td></tr>
-<tr><td><span class="tag t-red">红灯</span></td><td>任一部位伤病 ≥5；<strong>单侧痛</strong>（最关键）；连续两周完成 &lt;70%</td><td>停跑 3 天；目标降档到 4:10–4:20；恢复后从当前周重新起跑，不补量</td></tr>
+<tr><td><span class="tag t-amber">黄灯</span></td><td>静息心率比基线 +8 bpm <strong>连续 1 天</strong>；任一部位伤病 3–4；周跑量完成 &lt;80%；连续两周 RPE ≥8</td><td>砍周六力量或周五恢复；长距离降 20%；当周不安排 T/I</td></tr>
+<tr><td><span class="tag t-red">红灯</span></td><td>静息心率比基线 +8 bpm <strong>连续 2 天</strong>；任一部位伤病 ≥5；<strong>单侧痛</strong>（最关键）；连续两周完成 &lt;70%</td><td>伤病/完成度类：停跑 3 天；<strong>静息心率类：当天改休息</strong>（<strong>不套用</strong>停跑 3 天）；目标降档到 4:10–4:20；恢复后从当前周重新起跑，不补量</td></tr>
 </tbody>
 </table></div>
+<div class="note"><strong>静息心率 +8 bpm 分两级</strong>：<strong>连续 1 天 ＝ 🟡</strong>；<strong>连续 2 天 ＝ 🔴，但动作只是"当天改休息"</strong>——不要套用红灯默认的"停跑 3 天"。</div>
 <div class="warn"><strong>单侧的痛不要自己判断。</strong>双侧酸＝疲劳，可以跑；单侧痛＝结构性问题
 （胫骨、跟腱、髂胫束都是先单侧发作），直接按红灯处理。</div>
 
@@ -503,6 +504,10 @@ agent 周一自动拉 Garmin → 填训练日志主观 6 项 → 出四段式复
 <tr><td><strong>v2</strong></td><td>2027-07-28</td><td>第四章新增<strong>里程碑</strong>章节（7 项 M1–M7，docs/05 §4 的必备槽位）。
   与闸门做性质区分：闸门＝决策点（可改计划），里程碑＝成就点（<strong>未达成只记录、不自动改计划</strong>）。
   M4–M6 为长距离轴的三级刻度，M2 为健康护栏并带上本跑者旧伤部位（足底）。</td></tr>
+<tr><td><strong>v3</strong></td><td>2027-07-28</td><td><strong>同步通用安全层：静息心率 +8 bpm 拆两级</strong>（docs/03 §4 / docs/06 §3）。
+  原第九章表写"连续 2 天 +8 → 黄灯"，与 docs/03 §2"连续 2 天 ＝ 红线"矛盾。现行口径：
+  <strong>连续 1 天 ＝ 🟡；连续 2 天 ＝ 🔴，但动作仅为"当天改休息"</strong>（明确不套用红灯默认的"停跑 3 天"）。
+  判灯变严（新增一级黄灯），不构成安全层放宽。</td></tr>
 </tbody>
 </table></div>
 

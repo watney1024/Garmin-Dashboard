@@ -4,8 +4,17 @@
 **它驱动一切计划生成**：没有档案就不生成计划，先访谈补全档案。
 
 - 真实档案是私有运行文件（gitignored，建议放 `workspace/runner_profile.yaml`）。
-- 仓库只带虚构示例：`examples/runner_profile.example.yaml`。
-- agent 首次接触一个跑者时，把 `examples/runner_profile.example.yaml` 拷为骨架，用一轮结构化问答补全；之后维护即按周更新。
+- 仓库只带虚构示例：`examples/runner_profile.example.yaml`（**填好的**虚构档案）。
+- **三种填写入口，任选一种**（字段定义同一份，别自己另列）：
+  1. **agent 逐题访谈** —— 用 `prompts/collect_profile_zh.md`（推荐；agent 会先去 Garmin 把能查的查掉）；
+  2. **空白问卷** —— 跑者自己填 `examples/runner_profile.questionnaire.yaml`；
+  3. **交互式向导** —— `python scripts/profile_wizard.py`（纯标准库，逐题问、可带默认值改写既有档案）。
+- **写完必须校验**：`python scripts/profile_wizard.py --check <档案路径>`，**0 error 才算过**
+  （warning 允许，但要看懂）。校验器只认受限 YAML 子集：**拒绝** flow map `{...}`、块标量 `|`/`>`、
+  tab 缩进、锚点/别名；**接受**内联序列 `[a, b]`、跨行标量、行首 `---`。
+- 档案里可以有 schema 之外的**扩展块**（如本仓跑者的实测锚点 `measured:`）：校验器只对它告警、
+  不报错，向导也会**原样逐字保留**它。
+- agent 首次接触一个跑者时，用一轮结构化问答补全档案；之后维护即按周更新。
 
 ## 1. 字段总表
 
@@ -40,7 +49,9 @@ pr:
 coach: daniels_vdot            # 所选教练 id -> .agents/skills/coach-<id>/
 strength:          # 可选
   sessions_per_week: N
-  days: { Wednesday: lower, Saturday: "upper/core/calf" }
+  days:                       # 用块状写法（不要 { Wednesday: lower, ... } 这种 flow map）
+    Wednesday: lower
+    Saturday: "upper/core/calf"
 constraints: []    # 自由文本约束：伤病史、作息、出差频率、恢复偏好
 metric_baselines:  # 给黄红灯判定的基线（docs/03）
   resting_hr: 50

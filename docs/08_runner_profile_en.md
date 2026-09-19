@@ -6,9 +6,21 @@ profile, no plan — interview the runner and complete it first.
 
 - The real profile is a private runtime file (gitignored; put it at
   `workspace/runner_profile.yaml`).
-- The repo only ships a fabricated example: `examples/runner_profile.example.yaml`.
-- On first contact, copy the example as a skeleton and fill it in through one structured
-  Q&A round; afterwards maintain it weekly.
+- The repo only ships a fabricated example: `examples/runner_profile.example.yaml` (a **filled-in**
+  fictional profile).
+- **Three entry points — pick one** (one field definition behind all of them; never write your own):
+  1. **agent-driven interview** — use `prompts/collect_profile_en.md` (preferred: the agent first
+     reads whatever Garmin can already answer);
+  2. **blank questionnaire** — the runner fills in `examples/runner_profile.questionnaire.yaml`;
+  3. **interactive wizard** — `python scripts/profile_wizard.py` (stdlib only; asks field by field
+     and can update an existing profile while keeping its current values as defaults).
+- **Always validate after writing**: `python scripts/profile_wizard.py --check <path>` — **0 errors**
+  is the bar (warnings are allowed but must be understood). The parser accepts only a restricted YAML
+  subset: it **rejects** flow mappings `{...}`, block scalars `|`/`>`, tab indentation, anchors and
+  aliases; it **accepts** inline sequences `[a, b]`, scalars spanning several lines, and a leading `---`.
+- Out-of-schema **extension blocks** (such as the private `measured:` anchors in this repo) only warn;
+  the wizard writes them back **verbatim**.
+- On first contact, complete the profile through one structured Q&A round; afterwards maintain it weekly.
 
 ## 1. Field reference
 
@@ -43,7 +55,9 @@ pr:
 coach: daniels_vdot            # chosen coach id -> .agents/skills/coach-<id>/
 strength:          # optional
   sessions_per_week: N
-  days: { Wednesday: lower, Saturday: "upper/core/calf" }
+  days:                       # block style (never a { Wednesday: lower, ... } flow mapping)
+    Wednesday: lower
+    Saturday: "upper/core/calf"
 constraints: []    # free text: injury history, schedule, travel, recovery preferences
 metric_baselines:  # baselines for yellow/red decisions (docs/03)
   resting_hr: 50

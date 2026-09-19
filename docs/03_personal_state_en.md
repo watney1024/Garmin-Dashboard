@@ -37,7 +37,7 @@ Exact format, copy verbatim:
 
 | Field | How to measure / read | Trigger |
 |---|---|---|
-| Resting HR | watch reading **before getting out of bed** (daily); record weekly avg | **+8 bpm above the runner's baseline**: 1 day → watch; 2 consecutive days ⇒ rest that day (red line) and triggers the yellow-light weekly adjustment (docs/06) |
+| Resting HR | watch reading **before getting out of bed** (daily); record weekly avg | **+8 bpm above the runner's baseline**: **1 day ⇒ 🟡 yellow** (watch + the yellow actions); **2 consecutive days ⇒ 🔴 red, but the action is only "rest that day"** (**do not** apply red's default "stop running 3 days"), and it also triggers the yellow-light weekly adjustment (docs/06) |
 | Weight | morning, fasted, weekly avg | not a hard rule; large unexplained swing (>±2 kg) prompts a check (oedema/dehydration/appetite) |
 | Sleep | weekly avg hours | <5 h repeatedly or clearly below personal norm ⇒ cut the week's quality-session load |
 | RPE | whole-week fatigue, 1=very easy 10=exhausted | **two consecutive weeks ≥8** ⇒ agent proactively cuts volume |
@@ -61,8 +61,12 @@ packages may only tighten it, never relax it):
 
 | Level | Trigger (any) | Auto action |
 |---|---|---|
-| 🟡 Yellow | resting HR > baseline **+8 bpm** for 2 consecutive days; any site injury **3–4**; weekly volume done **<80%**; two consecutive weeks RPE≥8 | drop the week's easy/recovery run; long run **-20%**; no quality segments that week |
-| 🔴 Red | any site injury **≥5**; **unilateral** pain (the key one); two consecutive weeks done **<70%** | **stop running 3 days**; lower the target band; keep strength (halve the lower-body part); after recovery restart from the current week — **never make up missed volume** |
+| 🟡 Yellow | resting HR **+8 bpm above baseline for 1 day**; any site injury **3–4**; weekly volume done **<80%**; two consecutive weeks RPE≥8 | drop the week's easy/recovery run; long run **-20%**; no quality segments that week |
+| 🔴 Red | **resting HR +8 bpm above baseline for 2 consecutive days**; any site injury **≥5**; **unilateral** pain (the key one); two consecutive weeks done **<70%** | injury/completion triggers: **stop running 3 days**; **resting-HR trigger: rest that day only** (**do not** apply "stop running 3 days"); lower the target band; keep strength (halve the lower-body part); after recovery restart from the current week — **never make up missed volume** |
+
+**The resting-HR +8 bpm rule has two tiers** (the only "red but not a stop-running" rule):
+**1 day = 🟡**, **2 consecutive days = 🔴 with the action "rest that day"** — never carry over
+red's default "stop running 3 days".
 
 **Always cite the exact triggered rule**, e.g.: `Red: left achilles injury 5, unilateral`.
 

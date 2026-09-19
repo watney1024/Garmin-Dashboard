@@ -21,12 +21,15 @@
 
 | 你想知道/想要 | 发什么 | 结果 |
 |---|---|---|
+| **第一次用：建档** | `prompts/collect_profile` | agent 逐题访谈（能查的自己查）→ `runner_profile.yaml`，并校验 0 error |
 | 生成/重排计划（换目标/换教练） | `prompts/generate_plan` | 新 HTML 计划（含赛历/A 赛/配速/闸门/版本） |
 | 每周更新（默认周一自动） | `prompts/weekly_update` | 日志+复盘+判灯+改计划+≤400 字总结 |
 | 这周练什么 | `prompts/current_week_schedule` | 当周 7 天课表与关键课注意点 |
 | 把课表排进手表 | `prompts/schedule_to_watch` | Garmin 日历出现当天课，记得同步手表 |
 
 具体文字见 `prompts/` 目录；把 `<占位>` 换成你的实际文件路径/档案即可。
+不想聊天式访谈的话，也可以自己填空白问卷 `examples/runner_profile.questionnaire.yaml`，
+或跑交互式向导 `python scripts/profile_wizard.py`（两个入口的字段完全一样）。
 
 ## 3. 什么时候看计划、什么时候不用看
 
@@ -43,7 +46,8 @@
 ## 5. 你需要遵守的三条红线
 
 1. **单侧持续/夜间/跑中加重的痛** → 停 48 小时，别"跑开了就好"。
-2. 静息心率连续 2 天比平时高 8 以上 → 那天休息。
+2. 静息心率比平时高 8 以上：**连续 1 天先说一声（黄灯）**；**连续 2 天 → 那天休息**（只休那一天，
+   不是停跑 3 天）。
 3. 想临时改计划 → 改之前说一声（让 agent 判断是否会影响 A 赛）。
 
 ## 6. 重要提醒

@@ -13,7 +13,9 @@
 
 ## 2. 生成流程（固定顺序）
 
-1. **读档案**：`runner_profile.yaml`（无档案先访谈补全，见 docs/08）。
+1. **读档案**：`runner_profile.yaml`（无档案先访谈补全，见 docs/08；访谈用
+   `prompts/collect_profile_zh.md`）。**开跑前先过校验**：`python scripts/profile_wizard.py --check <档案>`
+   必须 0 error——档案错了，后面整套课表都是错的。
 2. **加载教练 skill**：先读 `.agents/skills/coach-<coach>/SKILL.md`，再按档案语言读全文
    `references/coach-<coach>_<lang>.md`（`<coach>`=档案 coach 字段，`_`→`-`；
    `<lang>`=档案 language）；不适配先建议换包并征得同意。

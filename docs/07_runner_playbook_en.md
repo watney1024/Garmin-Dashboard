@@ -26,13 +26,16 @@ Fill in this template:
 
 | you want | send | result |
 |---|---|---|
+| **first time: build a profile** | `prompts/collect_profile` | the agent interviews you question by question (reading what Garmin can already answer) → `runner_profile.yaml`, validated at 0 errors |
 | generate/re-plan (new goal/coach) | `prompts/generate_plan` | a new HTML plan (calendar/A race/paces/gates/version) |
 | weekly update (usually Monday, automatic) | `prompts/weekly_update` | log + review + light + plan changes + ≤400-char summary |
 | this week's schedule | `prompts/current_week_schedule` | the 7-day schedule + key-session notes |
 | push the schedule to your watch | `prompts/schedule_to_watch` | workouts appear in Garmin calendar; sync the watch |
 
 Copy the text from the `prompts/` directory and replace `<placeholders>` with your actual
-paths/profile.
+paths/profile. If you would rather not be interviewed, fill in the blank questionnaire at
+`examples/runner_profile.questionnaire.yaml` or run the interactive wizard
+`python scripts/profile_wizard.py` — all three collect exactly the same fields.
 
 ## 3. When to look at the plan, when not
 
@@ -55,7 +58,8 @@ paths/profile.
 
 1. Unilateral persistent pain / night pain / pain that worsens while running → stop for
    48 h; don't "run it out".
-2. Resting HR >8 bpm above normal for two consecutive days → rest that day.
+2. Resting HR >8 bpm above normal: **1 day → flag it (yellow)**; **2 consecutive days → rest
+   that day** (that day only — not a 3-day layoff).
 3. Want to change the plan ad hoc? Say it first (let the agent judge whether it harms the
    A race).
 

@@ -48,8 +48,9 @@ If the repo is used as the private workspace itself, keep runtime files under `w
   known-deviations table (no silent drift). 计划必须自包含、偏离必须留痕。
 - **Any plan edit appends a `vN` row** to the version table — increment, never skip.
  改计划必追加版本行 vN。
-- **Safety rules cannot be relaxed.** 通用安全层（主观 6 项、伤病分级单侧 ≥5=红、静息心率+8
-  黄灯等，见 `docs/03`/`docs/06`）是默认底线；教练包只能在此之上加严。
+- **Safety rules cannot be relaxed.** 通用安全层（主观 6 项、伤病分级单侧 ≥5=红、静息心率 +8
+  （**连续 1 天=黄、连续 2 天=红且只"当天改休息"**）等，见 `docs/03`/`docs/06`）是默认底线；
+  教练包只能在此之上加严。
 - **Prefetch fresh data when MCP tools are available** (`docs/01`); otherwise state the
   data-cutoff date in your reply. 有工具先拉数据，没有就标注数据日期。
 - **Title governance**: rename Garmin default titles (e.g. "XX区 跑步") to meaningful
@@ -59,6 +60,16 @@ If the repo is used as the private workspace itself, keep runtime files under `w
   so. 数据缺失就写"主观数据缺失"，不要编造。
 
 ## Core workflows / 核心工作流
+
+### 0. Collect / complete the runner profile — prompt `prompts/collect_profile_zh.md`
+No profile, no plan. Get the canonical question list with
+`python scripts/profile_wizard.py --questions` (derived from `FIELDS` — never write your own list),
+interview **group by group**, and read what Garmin can already answer (resting HR / weight / sleep /
+VO2max) so you can show the runner a number to confirm instead of asking them to remember. Write
+`workspace/runner_profile.yaml`, then **gate on `--check` reporting 0 errors**.
+Two alternative entry points over the same fields: the blank questionnaire
+`examples/runner_profile.questionnaire.yaml`, and the interactive wizard
+`python scripts/profile_wizard.py`. 三种入口字段完全一样；向导还会**原样保留** schema 之外的扩展块。
 
 ### A. Generate / regenerate a plan — prompt `prompts/generate_plan_zh.md`
 Read profile → load chosen coach package → resolve VDOT paces → produce the HTML plan

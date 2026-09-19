@@ -10,6 +10,7 @@ scripts to change behaviour. 纯标准库；通过命令行参数或环境变量
 | `garmin_track_workout.py` | build & schedule a **track/interval** session with lap-button steps (watch distance decoupled from the 400 m lap); its warm-up carries no HR target | 建并排**操场间歇课**（计圈键＝标称距离）；热身不设心率靶 |
 | `vdot.py` | race result → VDOT → training pace/times; intensity points & N-point session caps (docs/09 §7); `--selfcheck` | 成绩转 VDOT 与配速；强度点数与 N 分课上限；数据自检 |
 | `garmin_wellness.py` | pull the **wellness baseline** for a date range (resting HR · sleep · HRV · body composition · training status) — acquisition only, it computes no light/threshold (docs/02 §4b) | 拉**健康基线**（静息心率·睡眠·HRV·体重·训练状态）；只取数、不判灯 |
+| `profile_wizard.py` | runner-profile wizard / validator for a **restricted YAML subset** (no PyYAML): `--questions`, `--check`, `--selfcheck`, `--emit-questionnaire`; `FIELDS` is the single source of truth for the schema (docs/08) | 跑者档案向导与校验器（受限 YAML 子集，无第三方依赖）；`FIELDS` 是 schema 唯一正源 |
 
 Environment variables (see `.env.example` and `docs/01_mcp_setup_zh.md`):
 `GARMIN_MCP_SRC` (required for the Garmin scripts), `UVX_BIN`,
@@ -48,6 +49,15 @@ python scripts/vdot.py --session 15 --vdot 52
 
 # validate all data/vdot tables against book anchors
 python scripts/vdot.py --selfcheck
+
+# runner profile: fill it in interactively, then validate (default: workspace/runner_profile.yaml)
+python scripts/profile_wizard.py
+python scripts/profile_wizard.py --check workspace/runner_profile.yaml
+
+# the canonical question list, and regenerating the blank questionnaire
+python scripts/profile_wizard.py --questions --lang en
+python scripts/profile_wizard.py --emit-questionnaire
+python scripts/profile_wizard.py --selfcheck
 ```
 
 Data schemas are documented in `docs/02_data_schema_zh.md`. The files produced
@@ -62,7 +72,10 @@ build?" drift check. Run either scheduling script with `--dry-run` to see its pl
 Exit codes: `0` on success, `2` on a missing/invalid config. `garmin_pull.py` additionally
 exits **`1`** on a fetch/write failure — and in that case leaves `Activities.csv` untouched:
 the master is written atomically and is never rebuilt from an empty or errored fetch. The two
-scheduling scripts exit **`1`** if any session failed to reach Garmin.
+scheduling scripts exit **`1`** if any session failed to reach Garmin. `profile_wizard.py`
+exits **`1`** on validation errors, on a parse failure, or when the wizard is aborted (in which
+case the target file is left byte-identical); its `--check` prints `ERROR`/`WARN` per issue and
+**warnings never block**.
 
 Tests (stdlib `unittest`, no third-party runner):
 

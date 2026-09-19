@@ -11,7 +11,8 @@ Example Runner". No real person's data is used. You may copy and adapt these fil
 
 | file | 说明 | 关联文档 |
 |---|---|---|
-| `runner_profile.example.yaml` | 虚构跑者档案：3 场赛（训练 10K / 尝试 半马 / **A** 全马）、每周 4 跑、PR、教练=daniels_vdot | docs/08 |
+| `runner_profile.example.yaml` | 虚构跑者档案（**已填好的示例**）：3 场赛（训练 10K / 尝试 半马 / **A** 全马）、每周 4 跑、PR、教练=daniels_vdot | docs/08 |
+| `runner_profile.questionnaire.yaml` | 同一套字段的**空白问卷**（每个字段带问法与示例）——跑者填它、agent 填上面那份示例。**由 `scripts/profile_wizard.py` 生成**，改字段后要重新生成 | docs/08 |
 | `activities.example.csv` | 规范 16 列主表示例（含跑/操场/力量/抱石/骑行） | docs/02 |
 | `inbox/activity_900000001.example.csv` | 单次明细示例：区间课的休息段污染演示（走休 lap 14:xx/km） | docs/02 §2/§6 |
 | `registry.example.json` | 排课幂等 registry 的格式示例（ID 虚构） | docs/02 §4 |
@@ -29,6 +30,7 @@ Example Runner". No real person's data is used. You may copy and adapt these fil
 
 ```bash
 python scripts/vdot.py --5k 23:45
+python scripts/profile_wizard.py --check examples/runner_profile.example.yaml   # 示例档案应当 0 error
 python scripts/garmin_pull.py --help          # 连真实数据前先看参数
 ```
 
