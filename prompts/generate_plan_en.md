@@ -30,6 +30,16 @@
 5. Count the cycle backwards from the A race; build the weekly skeleton and week-by-week
    schedule (base → build → peak → taper), obeying the coach and the generic safety layer
    (docs/03/05/06): non-A races fold into that week per their role; exactly one all-out A.
+   **The order matters (docs/05 §2 step 6) — key sessions first, then fill with easy runs**:
+   (a) place **only the key sessions** in a week first (long run > test race/gate > quality) —
+   a runner usually has just 2–3 sessions a week they have to get right; (b) fill every remaining
+   runnable day with E/recovery (per the profile's runs_per_week); (c) E runs are **filler, not a
+   second goal** — never top up intensity with "just a bit faster". Doing it the other way (fill
+   the days first, then pick key sessions) yields a week that looks full but advances nothing.
+   **Write the long-run quality segment as "MP + Δ"** (declare the anchor `MP = goal marathon pace`,
+   then write `MP−13s ~ MP+1s` with the equivalent absolute band in brackets) — a VDOT revision then
+   touches one anchor table instead of every page; ⚠ MP is a bookkeeping anchor only, paces still
+   come from the current VDOT.
 6. **The week-by-week schedule must be a calendar**: grouped by phase, one row per week,
    with fixed columns "week | Mon…Sun (all 7 days) | total" — list **all seven days,
    rest days included as "休息"/rest**; never show only the days that have a session. Each

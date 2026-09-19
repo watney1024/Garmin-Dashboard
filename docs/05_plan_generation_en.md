@@ -34,12 +34,21 @@ standard); the numbers come from VDOT
    package, e.g. 16/18 weeks); mark where the non-A races fall (role decides how they run).
 5. **Weekly skeleton**: coach §3 assembles the weekly shape from the profile's
    `runs_per_week / long_run_day / quality_days`.
-6. **Fill the week-by-week schedule**: a base→build→peak→taper volume curve (coach §4 plus
-   the generic safety layer); sessions named `W<n> <weekday> <type> <key info>`. Emit the
-   schedule as a **calendar** (grouped by phase, one row per week, all seven Mon–Sun columns,
-   rest days shown). Points-based coach packages (e.g. daniels_vdot) also set a **weekly point
-   target**; quality-session amount caps come from `vdot.py --session N` (book Table 5-5,
-   docs/09 §7).
+6. **Fill the week-by-week schedule: key sessions first, then easy runs.** 
+   - **Step one: place only the "key sessions" first** — long run > test race/gate > quality (T/I).
+     A runner usually has just **2–3 sessions a week they actually have to get right**; pin those
+     to dates before anything else.
+   - **Step two: fill every remaining runnable day with E / recovery** (per the profile's
+     `runs_per_week`). E runs are **filler, not a second goal** — never top up intensity with
+     "just a bit faster".
+   - **The order is itself the constraint**: it forces you to answer "what matters most this
+     week" up front. Doing it the other way (fill the days first, then pick key sessions) tends
+     to produce a week that looks full but advances nothing.
+   - The curve must still run base→build→peak→taper (coach §4 plus the generic safety layer);
+     sessions named `W<n> <weekday> <type> <key info>`. Emit the schedule as a **calendar**
+     (grouped by phase, one row per week, all seven Mon–Sun columns, rest days shown).
+     Points-based coach packages (e.g. daniels_vdot) also set a **weekly point target**;
+     quality-session amount caps come from `vdot.py --session N` (book Table 5-5, docs/09 §7).
 7. **Add the guardrails**: coach §6 red lines + the generic safety layer (docs/03) merged
    into the "red lines & gates" chapter; the three gates land on concrete weeks/dates using
    the A race and the non-A tests.
@@ -61,6 +70,12 @@ standard); the numbers come from VDOT
 - **Late long-run**: if the coach/plan asks for cadence priority (e.g. ≥170), cadence > pace
    > HR.
 - **Strength**: by reps×weight; unrelated to running-intensity doctrine.
+- **Write the long-run quality segment as "MP + Δ", never as a bare pace**: declare one anchor
+  `MP = goal marathon pace`, then write the segment as `MP−13s ~ MP+1s`, with the equivalent
+  absolute band in brackets. Two payoffs: **a VDOT revision touches one anchor table**, not every
+  page; and the runner can see at a glance how far today sits from race pace.
+  ⚠ MP is a **bookkeeping anchor only** — the paces still come from the **current VDOT table value**,
+  so never train at the goal pace off the back of it (see §6).
 - One-liner: **main work is load-by-distance and checked-by-pace; in recovery or degraded
   conditions switch everything to time + HR.**
 
